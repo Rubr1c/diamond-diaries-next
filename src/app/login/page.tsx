@@ -14,8 +14,11 @@ import { loginSchema } from '@/schemas/auth-schemas';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { login } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -24,8 +27,13 @@ export default function Login() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof loginSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
+    try {
+      await login(values.email, values.password);
+      router.push('/');
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (

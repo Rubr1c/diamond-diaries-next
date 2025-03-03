@@ -22,6 +22,7 @@ api.interceptors.request.use(
 
 export async function login(email: string, password: string) {
   const response = await api.post('/auth/login', { email, password });
+  localStorage.setItem('token', response.data.token);
   return response.data;
 }
 
@@ -30,12 +31,17 @@ export async function register(
   username: string,
   password: string
 ) {
-  const response = await api.post('/auth/signup', { email, password });
+  const response = await api.post('/auth/signup', { email, username, password });
   return response.data;
 }
 
 export async function logout() {
   localStorage.removeItem('token');
+}
+
+export async function getUser() {
+  const response = await api.get('/users/me');
+  return response.data;
 }
 
 export default api;
