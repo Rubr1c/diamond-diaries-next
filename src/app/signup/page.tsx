@@ -10,20 +10,24 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { loginSchema } from '@/schemas/auth-schemas';
+import { registerSchema } from '@/schemas/auth-schemas';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { login } from '@/lib/api';
+import { register, verifyEmail } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { VerificationCodeModal } from '@/components/modals/VerificationCodeModal';
 
 export default function Login() {
   const router = useRouter();
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const form = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: '',
+      username: '',
       password: '',
     },
   });
@@ -34,14 +38,30 @@ export default function Login() {
     }
   }, [router]);
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  async function onSubmit(values: z.infer<typeof registerSchema>) {
     try {
-      await login(values.email, values.password);
-      router.push('/');
+      if (values.password !== values.confirmPassword) {
+        form.setError('confirmPassword', {
+          message: 'Passwords do not match',
+        });
+        return;
+      }
+      await register(values.email, values.username, values.password);
+      setEmail(values.email);
+      setIsModalOpen(true);
     } catch (error) {
       console.log(error);
     }
   }
+
+  const handleVerify = async (code: string) => {
+    try {
+      await verifyEmail(email, code);
+      router.push('/login');
+    } catch (error) {
+      throw error;
+    }
+  };
 
   return (
     <>
@@ -66,47 +86,70 @@ export default function Login() {
             />
             <FormField
               control={form.control}
-              name="password"
+              name="username"
               render={({ field }) => (
                 <FormItem className="mt-5 text-white">
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Username</FormLabel>
                   <FormControl className="bg-[#1E4959] border-0 w-72">
-                    <Input placeholder="●●●●●●●●" type="password" {...field} />
+                    <Input placeholder="username" {...field} />
                   </FormControl>
                   <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
-            <div>
-              <Link
-                href="/forgot-password"
-                className="text-sm hover:underline text-[#01C269]"
-              >
-                Forgot Password?
-              </Link>
-            </div>
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className="mt-5 text-white">
+                  <FormLabel>Password</FormLabel>
+                  <FormControl className="bg-[#1E4959] border-0 w-72">
+                    <Input type="password" placeholder="●●●●●●●●" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem className="mt-5 text-white">
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl className="bg-[#1E4959] border-0 w-72">
+                    <Input type="password" placeholder="●●●●●●●●" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
             <div className="flex justify-center">
               <Button
                 type="submit"
                 className="mt-5 hover:cursor-pointer bg-[#01C269] text-white w-52 font-bold"
               >
-                LOG IN
+                SIGN UP
               </Button>
             </div>
-            <div className='flex mt-2 justify-center'>
+            <div className="flex mt-2 justify-center">
               <p className="text-center text-white text-sm">
-                Don&apos;t have an account?
+                Already have an account?
               </p>
               <Link
-                href="/signup"
+                href="/login"
                 className="text-sm hover:underline text-[#01C269] ml-1"
               >
-                Signup 
+                Login
               </Link>
             </div>
           </form>
         </Form>
       </div>
+      <VerificationCodeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onVerify={handleVerify}
+      />
     </>
   );
 }

@@ -31,7 +31,11 @@ export async function register(
   username: string,
   password: string
 ) {
-  const response = await api.post('/auth/signup', { email, username, password });
+  const response = await api.post('/auth/signup', {
+    email,
+    username,
+    password,
+  });
   return response.data;
 }
 
@@ -41,6 +45,11 @@ export async function logout() {
 
 export async function getUser() {
   const response = await api.get('/users/me');
+  return response.data;
+}
+
+export async function verifyEmail(email: string, verificationCode: string) {
+  const response = await api.post('/auth/verify', { email, verificationCode });
   return response.data;
 }
 

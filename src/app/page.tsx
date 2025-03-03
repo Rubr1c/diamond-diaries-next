@@ -15,9 +15,9 @@ export default function Home() {
   }
 
   if (error) {
+    router.push('/login');
     console.log(error);
     localStorage.removeItem('token');
-    router.push('/login');
   }
 
   return <div>{data?.username}</div>;
