@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { login } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Login() {
   const router = useRouter();
@@ -26,6 +27,12 @@ export default function Login() {
       password: '',
     },
   });
+
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      router.push('/');
+    }
+  }, [router]);
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
