@@ -46,20 +46,20 @@ export default function Login() {
 
   return (
     <>
-      <div className="flex justify-center mt-20">
-        <h1 className="text-5xl text-white">Welcome back</h1>
+      <div className="flex justify-center mt-12 md:mt-24 px-4">
+        <h1 className="text-4xl md:text-7xl text-white text-center">Welcome back</h1>
       </div>
-      <div className="flex items-center justify-center min-h-full mt-20">
+      <div className="flex items-center justify-center min-h-full mt-8 md:mt-18 px-4">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-sm">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="mt-5 text-white foc">
-                  <FormLabel>Email</FormLabel>
-                  <FormControl className="bg-[#1E4959] border-0 w-72">
-                    <Input placeholder="user@example.com" {...field} />
+                <FormItem className="mt-4 md:mt-6 text-white foc">
+                  <FormLabel className="text-base md:text-lg">Email</FormLabel>
+                  <FormControl className="bg-[#1E4959] border-0 w-full">
+                    <Input className="text-base h-11" placeholder="user@example.com" {...field} />
                   </FormControl>
                   <FormMessage className="text-red-500" />
                 </FormItem>
@@ -69,19 +69,19 @@ export default function Login() {
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem className="mt-5 text-white">
-                  <FormLabel>Password</FormLabel>
-                  <FormControl className="bg-[#1E4959] border-0 w-72">
-                    <Input placeholder="●●●●●●●●" type="password" {...field} />
+                <FormItem className="mt-4 md:mt-6 text-white">
+                  <FormLabel className="text-base md:text-lg">Password</FormLabel>
+                  <FormControl className="bg-[#1E4959] border-0 w-full">
+                    <Input className="text-base h-11" placeholder="●●●●●●●●" type="password" {...field} />
                   </FormControl>
                   <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
-            <div>
+            <div className="mt-2">
               <Link
                 href="/forgot-password"
-                className="text-sm hover:underline text-[#01C269]"
+                className="text-sm md:text-base hover:underline text-[#01C269]"
               >
                 Forgot Password?
               </Link>
@@ -89,23 +89,23 @@ export default function Login() {
             <div className="flex justify-center">
               <Button
                 type="submit"
-                className="mt-5 hover:cursor-pointer bg-[#01C269] text-white w-52 font-bold"
+                className="mt-4 md:mt-6 hover:cursor-pointer bg-[#01C269] text-white w-full md:w-60 h-12 text-base md:text-lg font-bold"
               >
                 LOG IN
               </Button>
             </div>
-            <div className="flex mt-2 justify-center">
-              <p className="text-center text-white text-sm">
+            <div className="flex mt-3 md:mt-4 justify-center">
+              <p className="text-center text-white text-sm md:text-base">
                 Don&apos;t have an account?
               </p>
               <Link
                 href="/signup"
-                className="text-sm hover:underline text-[#01C269] ml-1"
+                className="text-sm md:text-base hover:underline text-[#01C269] ml-1"
               >
                 Signup
               </Link>
             </div>
-            <div className='flex justify-center mt-3'>
+            <div className='flex justify-center mt-3 md:mt-4'>
               <GoogleSignInButton />
             </div>
           </form>

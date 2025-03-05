@@ -13,7 +13,7 @@ export function GoogleSignInButton() {
       type="button"
       variant="outline"
       onClick={handleGoogleSignIn}
-      className="w-50 bg-[#1E4959] text-white hover:bg-[#1E4959]/90 flex items-center justify-center gap-2 border-0 hover:cursor-pointer"
+      className="w-60 h-12 bg-[#1E4959] text-white hover:bg-[#1E4959]/90 flex items-center justify-center gap-2 border-0 hover:cursor-pointer text-lg"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
