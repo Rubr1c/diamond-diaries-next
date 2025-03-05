@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { login } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 
 export default function Login() {
   const router = useRouter();
@@ -93,7 +94,7 @@ export default function Login() {
                 LOG IN
               </Button>
             </div>
-            <div className='flex mt-2 justify-center'>
+            <div className="flex mt-2 justify-center">
               <p className="text-center text-white text-sm">
                 Don&apos;t have an account?
               </p>
@@ -101,8 +102,11 @@ export default function Login() {
                 href="/signup"
                 className="text-sm hover:underline text-[#01C269] ml-1"
               >
-                Signup 
+                Signup
               </Link>
+            </div>
+            <div className='flex justify-center mt-3'>
+              <GoogleSignInButton />
             </div>
           </form>
         </Form>

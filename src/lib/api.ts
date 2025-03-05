@@ -53,4 +53,14 @@ export async function verifyEmail(email: string, verificationCode: string) {
   return response.data;
 }
 
+export function handleOAuthCallback() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  if (token) {
+    localStorage.setItem('token', token);
+    return true;
+  }
+  return false;
+}
+
 export default api;

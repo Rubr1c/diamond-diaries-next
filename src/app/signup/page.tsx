@@ -18,6 +18,7 @@ import { register, verifyEmail } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { VerificationCodeModal } from '@/components/modals/VerificationCodeModal';
+import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 
 export default function Login() {
   const router = useRouter();
@@ -141,6 +142,9 @@ export default function Login() {
               >
                 Login
               </Link>
+            </div>
+            <div className='flex justify-center mt-3'>
+              <GoogleSignInButton />
             </div>
           </form>
         </Form>

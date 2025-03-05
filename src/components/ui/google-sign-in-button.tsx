@@ -2,16 +2,17 @@
 
 import { Button } from '@/components/ui/button';
 
-interface GoogleSignInButtonProps {
-  onClick?: () => void;
-}
+export function GoogleSignInButton() {
+  const handleGoogleSignIn = () => {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    window.location.href = `${baseUrl}/oauth2/authorization/google`;
+  };
 
-export function GoogleSignInButton({ onClick }: GoogleSignInButtonProps) {
   return (
     <Button
       type="button"
       variant="outline"
-      onClick={onClick}
+      onClick={handleGoogleSignIn}
       className="w-50 bg-[#1E4959] text-white hover:bg-[#1E4959]/90 flex items-center justify-center gap-2 border-0 hover:cursor-pointer"
     >
       <svg
