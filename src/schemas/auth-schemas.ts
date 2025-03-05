@@ -32,4 +32,6 @@ export const registerSchema = z
     path: ['confirmPassword'],
   });
 
-export const verifySchema = z.bigint();
+export const verifySchema = z.object({
+  code: z.string().min(6, { message: "Please enter all 6 digits" }),
+});

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { getUser } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
@@ -9,7 +9,7 @@ export default function Home() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['user'],
     queryFn: getUser,
-    retry: false
+    retry: false,
   });
 
   if (isLoading) {

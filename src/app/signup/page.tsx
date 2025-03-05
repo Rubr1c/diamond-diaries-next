@@ -30,6 +30,7 @@ export default function Login() {
       email: '',
       username: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
@@ -67,11 +68,16 @@ export default function Login() {
   return (
     <>
       <div className="flex justify-center mt-12 md:mt-24 px-4">
-        <h1 className="text-4xl md:text-7xl text-white text-center">Welcome back</h1>
+        <h1 className="text-4xl md:text-7xl text-white text-center">
+          Welcome back
+        </h1>
       </div>
       <div className="flex items-center justify-center min-h-full mt-8 md:mt-18 px-4">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-sm">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="w-full max-w-sm"
+          >
             <FormField
               control={form.control}
               name="email"
@@ -94,7 +100,9 @@ export default function Login() {
               name="username"
               render={({ field }) => (
                 <FormItem className="mt-4 md:mt-6 text-white">
-                  <FormLabel className="text-base md:text-lg">Username</FormLabel>
+                  <FormLabel className="text-base md:text-lg">
+                    Username
+                  </FormLabel>
                   <FormControl className="bg-[#1E4959] border-0 w-full">
                     <Input
                       className="text-base h-11"
@@ -111,7 +119,9 @@ export default function Login() {
               name="password"
               render={({ field }) => (
                 <FormItem className="mt-4 md:mt-6 text-white">
-                  <FormLabel className="text-base md:text-lg">Password</FormLabel>
+                  <FormLabel className="text-base md:text-lg">
+                    Password
+                  </FormLabel>
                   <FormControl className="bg-[#1E4959] border-0 w-full">
                     <Input
                       className="text-base h-11"
@@ -129,7 +139,9 @@ export default function Login() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem className="mt-4 md:mt-6 text-white">
-                  <FormLabel className="text-base md:text-lg">Confirm Password</FormLabel>
+                  <FormLabel className="text-base md:text-lg">
+                    Confirm Password
+                  </FormLabel>
                   <FormControl className="bg-[#1E4959] border-0 w-full">
                     <Input
                       className="text-base h-11"
