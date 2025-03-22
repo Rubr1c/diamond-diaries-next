@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { UserIcon, FlameIcon } from 'lucide-react';
+import { UserIcon, FlameIcon, Menu } from 'lucide-react';
 import { useState } from 'react';
 import UserSidebar from './user-sidebar';
 import { User } from '@/index/user';
@@ -11,6 +11,7 @@ interface NavbarProps {
 
 export default function Navbar({ user }: NavbarProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
     <>
       <UserSidebar
@@ -18,7 +19,7 @@ export default function Navbar({ user }: NavbarProps) {
         isOpen={sidebarOpen}
         onOpenChange={setSidebarOpen}
       />
-      <nav className="w-full bg-white px-4 py-2 flex items-center justify-between shadow-sm">
+      <nav className="w-full bg-white px-4 py-2 flex items-center justify-between shadow-sm relative">
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
             <Image
@@ -34,7 +35,15 @@ export default function Navbar({ user }: NavbarProps) {
           </Link>
         </div>
 
-        <div className="flex items-center space-x-6">
+        {/* Mobile menu button - only visible on mobile */}
+        <button
+          className="md:hidden flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-[#003243] hover:bg-gray-100 focus:outline-none"
+          onClick={() => setSidebarOpen(true)}
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+
+        <div className="hidden md:flex items-center space-x-6">
           <Link href="/" className="text-gray-600 hover:text-[#003243]">
             Journal Entries
           </Link>
@@ -81,6 +90,70 @@ export default function Navbar({ user }: NavbarProps) {
           </div>
         </div>
       </nav>
+
+      {/* Mobile menu dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-md z-50 py-4 px-4">
+          <div className="flex flex-col space-y-4">
+            {/* Mobile user profile section */}
+            <div className="flex items-center space-x-3 pb-3 border-b border-gray-200">
+              <button
+                onClick={() => {
+                  setSidebarOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer"
+              >
+                {user?.profilePicture ? (
+                  <Image
+                    src={user.profilePicture}
+                    alt="Profile"
+                    width={40}
+                    height={40}
+                    className="object-cover"
+                  />
+                ) : (
+                  <UserIcon className="h-6 w-6 text-gray-600" />
+                )}
+              </button>
+              <div>
+                <p className="font-medium">{user?.username || 'User'}</p>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 rounded-full bg-[#01C269] flex items-center justify-center mr-1">
+                    <FlameIcon className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="text-xs text-gray-600">
+                    {user?.streaks ?? 0} day streak
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation links */}
+            <Link
+              href="/"
+              className="text-gray-600 hover:text-[#003243] py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Journal Entries
+            </Link>
+            <Link
+              href="/analytics"
+              className="text-gray-600 hover:text-[#003243] py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Analytics
+            </Link>
+            <Link
+              href="/settings"
+              className="text-gray-600 hover:text-[#003243] py-2"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Settings
+            </Link>
+          </div>
+        </div>
+      )}
     </>
   );
 }
