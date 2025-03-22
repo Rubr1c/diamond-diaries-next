@@ -22,5 +22,5 @@ export default function Home() {
     return null;
   }
 
-  return <div>{data?.username}</div>;
+  return <div></div>;
 }
