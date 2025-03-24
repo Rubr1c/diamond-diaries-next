@@ -1,7 +1,10 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL +
+    '/api/' +
+    process.env.NEXT_PUBLIC_API_VERSION,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -44,8 +47,19 @@ export async function logout() {
 }
 
 export async function getUser() {
-  const response = await api.get('/users/me');
-  return response.data;
+  try {
+    const response = await api.get('/users/me');
+    const userData = response.data;
+
+    return {
+      username: userData.username,
+      profilePicture: userData.profilePicture,
+      streaks: userData.streaks?.toString(),
+    };
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    throw error;
+  }
 }
 
 export async function verifyEmail(email: string, verificationCode: string) {
