@@ -44,7 +44,7 @@ export default function Navbar({ user }: NavbarProps) {
         </button>
 
         <div className="hidden md:flex items-center space-x-6">
-          <Link href="/" className="text-gray-600 hover:text-[#003243]">
+          <Link href="/entries" className="text-gray-600 hover:text-[#003243]">
             Journal Entries
           </Link>
           <Link
