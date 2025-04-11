@@ -1,17 +1,36 @@
 'use client';
 
-import { getUser } from '@/lib/api';
+import { Entry } from '@/index/entry';
+import { fetchEntries, serachEntries } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useRef, useState } from 'react';
 
 export default function EntriesPage() {
   const router = useRouter();
-  const { isLoading, error } = useQuery({
-    queryKey: ['user'],
-    queryFn: getUser,
+  const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const {
+    data: entries,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['entries'],
+    queryFn: () => fetchEntries(0, 10),
     retry: false,
-    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
+
+  const handleSearch = (value: string) => {
+    if (value.trim() === '') {
+      setSearchedEntries(null); // Clear search
+      return;
+    }
+    serachEntries(value).then((results) => {
+      setSearchedEntries(results);
+    });
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -30,9 +49,32 @@ export default function EntriesPage() {
           <h1 className="text-2xl font-bold text-[#003243] mb-4">
             Journal Entries
           </h1>
-          <p className="text-gray-600">
-            This page will display your journal entries.
-          </p>
+          <input
+            type="text"
+            placeholder="Search"
+            onChange={(e) => {
+              const value = e.target.value;
+              if (debounceTimeout.current)
+                clearTimeout(debounceTimeout.current);
+              debounceTimeout.current = setTimeout(() => {
+                handleSearch(value);
+              }, 300);
+            }}
+          />
+
+          <ul className="space-y-4">
+            {entries &&
+              entries.length > 0 &&
+              (searchedEntries ?? entries)?.map((entry) => (
+                <li
+                  key={entry.publicId}
+                  className="p-4 border rounded-lg shadow-sm"
+                >
+                  <h2 className="text-xl font-semibold">{entry.title}</h2>
+                  <p className="text-gray-600">{entry.content}</p>
+                </li>
+              ))}
+          </ul>
         </div>
       </div>
     </div>

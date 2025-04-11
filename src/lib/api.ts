@@ -1,3 +1,4 @@
+import { Entry } from '@/index/entry';
 import axios from 'axios';
 
 const api = axios.create({
@@ -86,6 +87,32 @@ export function handleOAuthCallback() {
     return true;
   }
   return false;
+}
+
+export async function fetchEntries(
+  offset: number,
+  amount: number
+): Promise<Entry[]> {
+  const res = await api.get('/entry', {
+    params: {
+      offset,
+      amount,
+    },
+  });
+
+  return res.data;
+}
+
+export async function serachEntries(query: string): Promise<Entry[]> {
+  const res = await api.get('/entry/search', {
+    params: {
+      query,
+    },
+  });
+
+  console.log(res);
+
+  return res.data;
 }
 
 export default api;
