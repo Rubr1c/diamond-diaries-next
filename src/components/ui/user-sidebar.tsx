@@ -44,9 +44,9 @@ export default function UserSidebar({
           <div className="text-center">
             <h3 className="text-lg font-medium">{user?.username || 'User'}</h3>
             <div className="mt-2 flex items-center justify-center space-x-2">
-              <span className="text-sm text-gray-600">Streaks:</span>
+              <span className="text-sm text-gray-600">Streak:</span>
               <span className="text-sm font-semibold">
-                {user?.streaks || '0'}
+                {user?.streak || '0'}
               </span>
             </div>
           </div>

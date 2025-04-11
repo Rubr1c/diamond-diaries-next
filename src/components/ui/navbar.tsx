@@ -64,7 +64,7 @@ export default function Navbar({ user }: NavbarProps) {
                 <FlameIcon className="h-5 w-5 text-white" />
               </div>
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#003243] rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">{user?.streaks ?? 0}</span>
+                <span className="text-white text-xs">{user?.streak ?? 0}</span>
               </div>
             </div>
 
@@ -123,7 +123,7 @@ export default function Navbar({ user }: NavbarProps) {
                     <FlameIcon className="h-3 w-3 text-white" />
                   </div>
                   <span className="text-xs text-gray-600">
-                    {user?.streaks ?? 0} day streak
+                    {user?.streak ?? 0} day streak
                   </span>
                 </div>
               </div>

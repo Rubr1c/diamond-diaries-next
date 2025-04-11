@@ -25,6 +25,7 @@ api.interceptors.request.use(
 
 export async function login(email: string, password: string) {
   const response = await api.post('/auth/login', { email, password });
+  if (response.status == 202) return null;
   localStorage.setItem('token', response.data.token);
   return response.data;
 }
@@ -48,15 +49,16 @@ export async function logout() {
 
 export async function getUser() {
   try {
-    const response = await api.get('/users/me');
+    const response = await api.get('/user/me');
     const userData = response.data;
-
+    console.log(response.data);
     return {
       username: userData.username,
       profilePicture: userData.profilePicture,
-      streaks: userData.streaks?.toString(),
+      streak: userData.streak?.toString(),
     };
   } catch (error) {
+    localStorage.removeItem('token');
     console.error('Error fetching user data:', error);
     throw error;
   }
@@ -64,6 +66,15 @@ export async function getUser() {
 
 export async function verifyEmail(email: string, verificationCode: string) {
   const response = await api.post('/auth/verify', { email, verificationCode });
+  return response.data;
+}
+
+export async function verify2fa(email: string, verificationCode: string) {
+  const response = await api.post('/auth/verify-2fa', {
+    email,
+    verificationCode,
+  });
+  localStorage.setItem('token', response.data.token);
   return response.data;
 }
 
