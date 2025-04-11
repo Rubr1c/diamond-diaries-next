@@ -52,7 +52,7 @@ export async function getUser() {
   try {
     const response = await api.get('/user/me');
     const userData = response.data;
-    console.log(response.data);
+    console.log(userData);
     return {
       username: userData.username,
       profilePicture: userData.profilePicture,
@@ -100,6 +100,8 @@ export async function fetchEntries(
     },
   });
 
+  console.log(res.data);
+
   return res.data;
 }
 
@@ -113,6 +115,10 @@ export async function serachEntries(query: string): Promise<Entry[]> {
   console.log(res);
 
   return res.data;
+}
+
+export async function deleteEntry(entryId: bigint) {
+  await api.delete(`/entry/${entryId}`);
 }
 
 export default api;

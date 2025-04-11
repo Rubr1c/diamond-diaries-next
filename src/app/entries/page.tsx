@@ -1,15 +1,23 @@
 'use client';
 
 import { Entry } from '@/index/entry';
-import { fetchEntries, serachEntries } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { getUser, fetchEntries, serachEntries, deleteEntry } from '@/lib/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
 export default function EntriesPage() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const { error: userError } = useQuery({
+    queryKey: ['user'],
+    queryFn: getUser,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
   const {
     data: entries,
@@ -22,7 +30,7 @@ export default function EntriesPage() {
     refetchOnWindowFocus: false,
   });
 
-  const handleSearch = (value: string) => {
+  function handleSearch(value: string) {
     if (value.trim() === '') {
       setSearchedEntries(null); // Clear search
       return;
@@ -30,13 +38,22 @@ export default function EntriesPage() {
     serachEntries(value).then((results) => {
       setSearchedEntries(results);
     });
-  };
+  }
+
+  function handleDelete(entryId: bigint) {
+    deleteEntry(entryId).then(() => {
+      fetchEntries(0, 10).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['entries'] });
+        setSearchedEntries(null);
+      });
+    });
+  }
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (error) {
+  if (error || userError) {
     localStorage.removeItem('token');
     router.push('/login');
     return null;
@@ -67,11 +84,18 @@ export default function EntriesPage() {
               entries.length > 0 &&
               (searchedEntries ?? entries)?.map((entry) => (
                 <li
-                  key={entry.publicId}
-                  className="p-4 border rounded-lg shadow-sm"
+                  key={entry.id}
+                  className="p-4 border rounded-lg shadow-sm relative"
                 >
                   <h2 className="text-xl font-semibold">{entry.title}</h2>
                   <p className="text-gray-600">{entry.content}</p>
+                  <p>{entry.journalDate.toString()}</p>
+                  <button
+                    className="absolute bottom-2 right-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                    onClick={() => handleDelete(entry.id)}
+                  >
+                    Delete
+                  </button>
                 </li>
               ))}
           </ul>

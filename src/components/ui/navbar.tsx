@@ -44,7 +44,7 @@ export default function Navbar({ user }: NavbarProps) {
         </button>
 
         <div className="hidden md:flex items-center space-x-6">
-          <Link href="/" className="text-gray-600 hover:text-[#003243]">
+          <Link href="/entries" className="text-gray-600 hover:text-[#003243]">
             Journal Entries
           </Link>
           <Link
@@ -52,9 +52,6 @@ export default function Navbar({ user }: NavbarProps) {
             className="text-gray-600 hover:text-[#003243]"
           >
             Analytics
-          </Link>
-          <Link href="/settings" className="text-gray-600 hover:text-[#003243]">
-            Settings
           </Link>
 
           <div className="flex items-center ml-2">
@@ -143,13 +140,6 @@ export default function Navbar({ user }: NavbarProps) {
               onClick={() => setMobileMenuOpen(false)}
             >
               Analytics
-            </Link>
-            <Link
-              href="/settings"
-              className="text-gray-600 hover:text-[#003243] py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Settings
             </Link>
           </div>
         </div>

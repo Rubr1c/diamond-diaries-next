@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { UserIcon } from 'lucide-react';
+import Link from 'next/link';
 
 interface UserSidebarProps {
   user: User | undefined;
@@ -55,9 +56,12 @@ export default function UserSidebar({
             <button className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md transition-colors">
               My Journal
             </button>
-            <button className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md transition-colors">
-              Settings
-            </button>
+            <Link
+              href="/account"
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Account
+            </Link>
             <button className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md transition-colors">
               Logout
             </button>
