@@ -19,7 +19,7 @@ export default function Navbar({ user }: NavbarProps) {
         isOpen={sidebarOpen}
         onOpenChange={setSidebarOpen}
       />
-      <nav className="w-full bg-white px-4 py-2 flex items-center justify-between shadow-sm relative">
+      <nav className="w-full bg-white px-4 py-2 flex items-center justify-between shadow-sm fixed top-0 left-0 z-10">
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
             <Image
@@ -44,7 +44,7 @@ export default function Navbar({ user }: NavbarProps) {
         </button>
 
         <div className="hidden md:flex items-center space-x-6">
-          <Link href="/entries" className="text-gray-600 hover:text-[#003243]">
+          <Link href="/" className="text-gray-600 hover:text-[#003243]">
             Journal Entries
           </Link>
           <Link

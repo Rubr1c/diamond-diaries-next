@@ -1,6 +1,5 @@
-
 export interface User {
-    username: string,
-    profilePicture: string,
-    streaks: string
+  username: string;
+  profilePicture: string;
+  streaks: string;
 }
