@@ -1,4 +1,5 @@
 import { Entry } from '@/index/entry';
+import { User } from '@/index/user';
 import axios from 'axios';
 
 const api = axios.create({
@@ -48,16 +49,10 @@ export async function logout() {
   localStorage.removeItem('token');
 }
 
-export async function getUser() {
+export async function getUser(): Promise<User> {
   try {
     const response = await api.get('/user/me');
-    const userData = response.data;
-    console.log(userData);
-    return {
-      username: userData.username,
-      profilePicture: userData.profilePicture,
-      streak: userData.streak?.toString(),
-    };
+    return response.data;
   } catch (error) {
     localStorage.removeItem('token');
     console.error('Error fetching user data:', error);

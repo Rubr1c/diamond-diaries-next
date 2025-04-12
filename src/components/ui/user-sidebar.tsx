@@ -10,6 +10,9 @@ import {
 import Image from 'next/image';
 import { UserIcon } from 'lucide-react';
 import Link from 'next/link';
+import { logout } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 
 interface UserSidebarProps {
   user: User | undefined;
@@ -22,6 +25,15 @@ export default function UserSidebar({
   isOpen,
   onOpenChange,
 }: UserSidebarProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  function handleLogout() {
+    logout();
+    queryClient.clear();
+    router.push('/login');
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[300px] h-full fixed right-0 top-0 rounded-l-lg rounded-r-none transform-none translate-x-0 translate-y-0 m-0 !left-auto !top-0 !translate-x-0 !translate-y-0 !bg-white">
@@ -62,7 +74,10 @@ export default function UserSidebar({
             >
               Account
             </Link>
-            <button className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md transition-colors">
+            <button
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-md transition-colors hover:cursor-pointer"
+              onClick={handleLogout}
+            >
               Logout
             </button>
           </div>

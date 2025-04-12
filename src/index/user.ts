@@ -1,5 +1,9 @@
 export interface User {
-    username: string;
-    profilePicture: string;
-    streak: string;
+  username: string;
+  email: string;
+  profilePicture: string;
+  streak: string;
+  enabled2fa: boolean;
+  aiAllowTitleAccess: boolean;
+  aiAllowContentAccess: boolean;
 }

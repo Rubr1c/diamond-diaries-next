@@ -3,7 +3,6 @@
 import { getUser } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import './calendar.css';
 
 export default function Home() {
   const router = useRouter();
