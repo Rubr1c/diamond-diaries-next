@@ -1,6 +1,6 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import Navbar from '@/components/ui/navbar';
+import Navbar from '@/components/custom/navbar';
 import { useQuery } from '@tanstack/react-query';
 import { getUser } from '@/lib/api';
 
