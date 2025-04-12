@@ -1,4 +1,5 @@
 import { Entry } from '@/index/entry';
+import { Folder } from '@/index/folder';
 import { User } from '@/index/user';
 import axios from 'axios';
 
@@ -74,6 +75,31 @@ export async function verify2fa(email: string, verificationCode: string) {
   return response.data;
 }
 
+export async function resendVerificationCode(email: string) {
+  const response = await api.post('/auth/resend-verification', {
+    params: { email },
+  });
+  return response.data;
+}
+
+export async function forgotPassword(email: string) {
+  const response = await api.post('/auth/forgot-password', { email });
+  return response.data;
+}
+
+export async function resetPassword(
+  email: string,
+  verificationCode: string,
+  newPassword: string
+) {
+  const response = await api.post('/auth/reset-password', {
+    email,
+    verificationCode,
+    newPassword,
+  });
+  return response.data;
+}
+
 export function handleOAuthCallback() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
@@ -100,6 +126,18 @@ export async function fetchEntries(
   return res.data;
 }
 
+export async function fetchEntry(entryId: bigint): Promise<Entry> {
+  const res = await api.get(`/entry/${entryId}`);
+
+  return res.data;
+}
+
+export async function fetchEntriesByDate(date: string): Promise<Entry[]> {
+  const res = await api.get(`/entry/date/${date}`);
+
+  return res.data;
+}
+
 export async function serachEntries(query: string): Promise<Entry[]> {
   const res = await api.get('/entry/search', {
     params: {
@@ -109,6 +147,128 @@ export async function serachEntries(query: string): Promise<Entry[]> {
 
   console.log(res);
 
+  return res.data;
+}
+
+export async function newEntry(
+  title: string,
+  content: string,
+  folderId: bigint,
+  tagIds: bigint[],
+  wordCount: number,
+  isFavorite: boolean
+) {
+  const res = await api.post('/entry/new', {
+    title,
+    content,
+    folderId,
+    tagIds,
+    wordCount,
+    isFavorite,
+  });
+
+  return res.data;
+}
+
+export async function editEntry(
+  entryId: bigint,
+  title?: string,
+  content?: string,
+  folderId?: bigint,
+  tagIds?: bigint[],
+  wordCount?: number,
+  isFavorite?: boolean
+) {
+  const res = await api.put(`/entry/${entryId}/update`, {
+    title,
+    content,
+    folderId,
+    tagIds,
+    wordCount,
+    isFavorite,
+  });
+
+  return res.data;
+}
+
+export async function addEntryToFolder(entryId: bigint, folderId: bigint) {
+  const res = await api.post(`/entry/${entryId}/add-to-folder/${folderId}`);
+  return res.data;
+}
+
+export async function removeEntryFromFolder(entryId: bigint) {
+  const res = await api.delete(`/entry/${entryId}/remove-from-folder`);
+  return res.data;
+}
+
+export async function fetchAllEntriesFromFolder(
+  folderId: bigint
+): Promise<Entry[]> {
+  const res = await api.get(`/entry/folder/${folderId}`);
+  return res.data;
+}
+
+export async function generateAiPrompt() {
+  const res = await api.get('/ai/daily-prompt');
+  return res.data;
+}
+
+export async function newFolder(name: string) {
+  const res = await api.post('/folder/new', { name });
+  return res.data;
+}
+
+export async function getFolder(id: bigint): Promise<Folder> {
+  const res = await api.get(`/folder/${id}`);
+  return res.data;
+}
+
+export async function fetchAllFolders(): Promise<Folder[]> {
+  const res = await api.get('/folder');
+  return res.data;
+}
+
+export async function updateFolderName(folderId: bigint, newName: string) {
+  const res = await api.put(`/folder/${folderId}/update-name/${newName}`);
+  return res.data;
+}
+
+export async function deleteFolder(folderId: bigint) {
+  const res = await api.delete(`/folder/${folderId}`);
+  return res.data;
+}
+
+export async function createSharedEntry(
+  entryId: bigint,
+  allowedUsers: string[],
+  allowAnyone: boolean
+) {
+  const res = await api.post(`/shared-entry/new`, {
+    entryId,
+    allowedUsers,
+    allowAnyone,
+  });
+  return res.data;
+}
+
+export async function fetchSharedEntry(id: string): Promise<Entry> {
+  const res = await api.get(`/shared-entry/${id}`);
+  return res.data;
+}
+
+export async function addUserToSharedEntry(id: string, userEmail: string) {
+  const res = await api.post(`/shared-entry/${id}/add-user`, {
+    userEmail,
+  });
+  return res.data;
+}
+
+export async function removeUserFromSharedEntry(id: string, userEmail: string) {
+  const res = await api.delete(`/shared-entry/${id}/remove-user`, {
+    data: {
+      userEmail,
+    },
+  });
   return res.data;
 }
 
