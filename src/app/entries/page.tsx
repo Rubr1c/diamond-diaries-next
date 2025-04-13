@@ -1,7 +1,7 @@
 'use client';
 
 import { Entry } from '@/index/entry';
-import { getUser, fetchEntries, serachEntries, deleteEntry } from '@/lib/api';
+import { getUser, fetchEntries, searchEntries, deleteEntry } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
@@ -35,7 +35,7 @@ export default function EntriesPage() {
       setSearchedEntries(null); // Clear search
       return;
     }
-    serachEntries(value).then((results) => {
+    searchEntries(value).then((results) => {
       setSearchedEntries(results);
     });
   }

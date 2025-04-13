@@ -2,7 +2,7 @@ import { Entry } from "@/index/entry";
 import { Folder } from "@/index/folder";
 import { User } from "@/index/user";
 import axios from "axios";
-import { off } from "process";
+
 
 const api = axios.create({
   baseURL:
@@ -129,6 +129,12 @@ export async function fetchEntries(
 
 export async function fetchEntry(entryId: bigint): Promise<Entry> {
   const res = await api.get(`/entry/${entryId}`);
+
+  return res.data;
+}
+
+export async function fetchEntryByUuid(entryUuid: string) : Promise<Entry> {
+  const res = await api.get(`/entry/uuid/${entryUuid}`);
 
   return res.data;
 }
