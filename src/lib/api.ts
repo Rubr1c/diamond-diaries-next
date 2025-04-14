@@ -1,22 +1,20 @@
-import { Entry } from "@/index/entry";
-import { Folder } from "@/index/folder";
-import { User } from "@/index/user";
-import axios from "axios";
-
+import { Entry } from '@/index/entry';
+import { Folder } from '@/index/folder';
+import { User } from '@/index/user';
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_URL +
-    "/api/" +
-    process.env.NEXT_PUBLIC_API_VERSION,
+  baseURL: 'http://localhost:8080' + '/api/' + 'v1',
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
+
+
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,9 +26,9 @@ api.interceptors.request.use(
 );
 
 export async function login(email: string, password: string) {
-  const response = await api.post("/auth/login", { email, password });
+  const response = await api.post('/auth/login', { email, password });
   if (response.status == 202) return null;
-  localStorage.setItem("token", response.data.token);
+  localStorage.setItem('token', response.data.token);
   return response.data;
 }
 
@@ -39,7 +37,7 @@ export async function register(
   username: string,
   password: string
 ) {
-  const response = await api.post("/auth/signup", {
+  const response = await api.post('/auth/signup', {
     email,
     username,
     password,
@@ -48,43 +46,43 @@ export async function register(
 }
 
 export async function logout() {
-  localStorage.removeItem("token");
+  localStorage.removeItem('token');
 }
 
 export async function getUser(): Promise<User> {
   try {
-    const response = await api.get("/user/me");
+    const response = await api.get('/user/me');
     return response.data;
   } catch (error) {
-    localStorage.removeItem("token");
-    console.error("Error fetching user data:", error);
+    localStorage.removeItem('token');
+    console.error('Error fetching user data:', error);
     throw error;
   }
 }
 
 export async function verifyEmail(email: string, verificationCode: string) {
-  const response = await api.post("/auth/verify", { email, verificationCode });
+  const response = await api.post('/auth/verify', { email, verificationCode });
   return response.data;
 }
 
 export async function verify2fa(email: string, verificationCode: string) {
-  const response = await api.post("/auth/verify-2fa", {
+  const response = await api.post('/auth/verify-2fa', {
     email,
     verificationCode,
   });
-  localStorage.setItem("token", response.data.token);
+  localStorage.setItem('token', response.data.token);
   return response.data;
 }
 
 export async function resendVerificationCode(email: string) {
-  const response = await api.post("/auth/resend-verification", {
+  const response = await api.post('/auth/resend-verification', {
     params: { email },
   });
   return response.data;
 }
 
 export async function forgotPassword(email: string) {
-  const response = await api.post("/auth/forgot-password", { email });
+  const response = await api.post('/auth/forgot-password', { email });
   return response.data;
 }
 
@@ -93,7 +91,7 @@ export async function resetPassword(
   verificationCode: string,
   newPassword: string
 ) {
-  const response = await api.post("/auth/reset-password", {
+  const response = await api.post('/auth/reset-password', {
     email,
     verificationCode,
     newPassword,
@@ -103,9 +101,9 @@ export async function resetPassword(
 
 export function handleOAuthCallback() {
   const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get("token");
+  const token = urlParams.get('token');
   if (token) {
-    localStorage.setItem("token", token);
+    localStorage.setItem('token', token);
     return true;
   }
   return false;
@@ -115,7 +113,7 @@ export async function fetchEntries(
   offset: number,
   amount: number
 ): Promise<Entry[]> {
-  const res = await api.get("/entry", {
+  const res = await api.get('/entry', {
     params: {
       offset,
       amount,
@@ -133,7 +131,7 @@ export async function fetchEntry(entryId: bigint): Promise<Entry> {
   return res.data;
 }
 
-export async function fetchEntryByUuid(entryUuid: string) : Promise<Entry> {
+export async function fetchEntryByUuid(entryUuid: string): Promise<Entry> {
   const res = await api.get(`/entry/uuid/${entryUuid}`);
 
   return res.data;
@@ -150,7 +148,7 @@ export async function fetchAllEntriesByTags(
   offset: number,
   size: number
 ) {
-  const res = await api.get("/entry/tag", {
+  const res = await api.get('/entry/tag', {
     params: { offset, size, tagIds },
   });
 
@@ -166,7 +164,7 @@ export async function addTagsToEntry(entryId: bigint, tagIds: bigint[]) {
 }
 
 export async function searchEntries(query: string): Promise<Entry[]> {
-  const res = await api.get("/entry/search", {
+  const res = await api.get('/entry/search', {
     params: {
       query,
     },
@@ -185,7 +183,7 @@ export async function newEntry(
   wordCount: number,
   isFavorite: boolean
 ) {
-  const res = await api.post("/entry/new", {
+  const res = await api.post('/entry/new', {
     title,
     content,
     folderId,
@@ -236,12 +234,12 @@ export async function fetchAllEntriesFromFolder(
 }
 
 export async function generateAiPrompt() {
-  const res = await api.get("/ai/daily-prompt");
+  const res = await api.get('/ai/daily-prompt');
   return res.data;
 }
 
 export async function newFolder(name: string) {
-  const res = await api.post("/folder/new", { name });
+  const res = await api.post('/folder/new', { name });
   return res.data;
 }
 
@@ -251,7 +249,7 @@ export async function getFolder(id: bigint): Promise<Folder> {
 }
 
 export async function fetchAllFolders(): Promise<Folder[]> {
-  const res = await api.get("/folder");
+  const res = await api.get('/folder');
   return res.data;
 }
 

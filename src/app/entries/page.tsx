@@ -5,6 +5,7 @@ import { getUser, fetchEntries, searchEntries, deleteEntry } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
+import { marked } from 'marked';
 
 export default function EntriesPage() {
   const queryClient = useQueryClient();
@@ -32,7 +33,7 @@ export default function EntriesPage() {
 
   function handleSearch(value: string) {
     if (value.trim() === '') {
-      setSearchedEntries(null); // Clear search
+      setSearchedEntries(null);
       return;
     }
     searchEntries(value).then((results) => {
@@ -57,6 +58,33 @@ export default function EntriesPage() {
     localStorage.removeItem('token');
     router.push('/login');
     return null;
+  }
+
+  function handleEntryClick(entryId: string) {
+    router.push(`/entries/${entryId}`);
+  }
+
+  // Function to strip markdown and truncate text
+  function stripMarkdownAndTruncate(
+    content: string,
+    maxLength: number
+  ): string {
+    // Convert escaped newlines (\n) into actual newlines
+    const normalized = content.replace(/\\n/g, '\n');
+
+    // Convert Markdown to HTML
+    const html = marked(normalized);
+
+    // Strip all HTML tags
+    const plainText = html
+      .replace(/<\/?[^>]+(>|$)/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Truncate
+    return plainText.length > maxLength
+      ? plainText.substring(0, maxLength).trim() + '...'
+      : plainText;
   }
 
   return (
@@ -85,10 +113,14 @@ export default function EntriesPage() {
               (searchedEntries ?? entries)?.map((entry) => (
                 <li
                   key={entry.id}
-                  className="p-4 border rounded-lg shadow-sm relative"
+                  className="p-4 border rounded-lg shadow-sm relative hover:shadow-lg transition-shadow duration-200 hover:p-5 transform hover:-translate-y-1 cursor-pointer"
+                  onClick={() => handleEntryClick(entry.publicId)}
                 >
                   <h2 className="text-xl font-semibold">{entry.title}</h2>
-                  <p className="text-gray-600">{entry.content}</p>
+                  <p className="text-gray-600">
+                    {/* Render the first 200 chars, stripped of markdown */}
+                    {stripMarkdownAndTruncate(entry.content, 200)}
+                  </p>
                   <p>{entry.journalDate.toString()}</p>
                   <button
                     className="absolute bottom-2 right-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
