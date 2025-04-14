@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/atom-one-dark.css';
 
 export default function EntryPage() {
   const params = useParams();
@@ -86,11 +88,9 @@ export default function EntryPage() {
             hr: ({ node, ...props }) => (
               <hr className="border-t-2 border-gray-300 my-4" {...props} />
             ),
-            pre: ({ node, ...props }) => (
-              <pre className="bg-gray-100 p-4 rounded" {...props} />
-            ),
           }}
           remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeHighlight]}
         >
           {entry?.content.replace(/\\n/g, '\n')}
         </ReactMarkdown>
