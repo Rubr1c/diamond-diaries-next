@@ -10,8 +10,6 @@ const api = axios.create({
   },
 });
 
-
-
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -197,22 +195,16 @@ export async function newEntry(
 
 export async function editEntry(
   entryId: bigint,
-  title?: string,
-  content?: string,
-  folderId?: bigint,
-  tagIds?: bigint[],
-  wordCount?: number,
-  isFavorite?: boolean
+  updates: {
+    title?: string;
+    content?: string;
+    folderId?: bigint;
+    tagIds?: bigint[];
+    wordCount?: number;
+    isFavorite?: boolean;
+  }
 ) {
-  const res = await api.put(`/entry/${entryId}/update`, {
-    title,
-    content,
-    folderId,
-    tagIds,
-    wordCount,
-    isFavorite,
-  });
-
+  const res = await api.put(`/entry/${entryId}/update`, updates);
   return res.data;
 }
 

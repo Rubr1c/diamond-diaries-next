@@ -1,7 +1,13 @@
 'use client';
 
 import { Entry } from '@/index/entry';
-import { getUser, fetchEntries, searchEntries, deleteEntry } from '@/lib/api';
+import {
+  getUser,
+  fetchEntries,
+  searchEntries,
+  deleteEntry,
+  editEntry,
+} from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
@@ -87,6 +93,21 @@ export default function EntriesPage() {
       : plainText;
   }
 
+  async function handleFavoriteToggle(entry: Entry) {
+    editEntry(entry.id, { isFavorite: !entry.isFavorite }).then(() => {
+      // Invalidate both the entries list and the specific entry query
+      queryClient.invalidateQueries({ queryKey: ['entries'] });
+      queryClient.invalidateQueries({ queryKey: [`entry-${entry.publicId}`] });
+
+      setSearchedEntries(
+        (prevEntries) =>
+          prevEntries?.map((e) =>
+            e.id === entry.id ? { ...e, isFavorite: !e.isFavorite } : e
+          ) ?? null
+      );
+    });
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
       <div className="container mx-auto p-6">
@@ -116,9 +137,42 @@ export default function EntriesPage() {
                   className="p-4 border rounded-lg shadow-sm relative hover:shadow-lg transition-shadow duration-200 hover:p-5 transform hover:-translate-y-1 cursor-pointer"
                   onClick={() => handleEntryClick(entry.publicId)}
                 >
+                  {/* Heart icon for favorites */}
+                  <div
+                    className="absolute top-2 right-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFavoriteToggle(entry);
+                    }}
+                  >
+                    {entry.isFavorite ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-red-500 cursor-pointer"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-gray-300 cursor-pointer"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                        />
+                      </svg>
+                    )}
+                  </div>
                   <h2 className="text-xl font-semibold">{entry.title}</h2>
                   <p className="text-gray-600">
-                    {/* Render the first 200 chars, stripped of markdown */}
                     {stripMarkdownAndTruncate(entry.content, 200)}
                   </p>
                   <p>{entry.journalDate.toString()}</p>
