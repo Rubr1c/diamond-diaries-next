@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { logout } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 interface UserSidebarProps {
   user: User | undefined;
@@ -27,10 +28,12 @@ export default function UserSidebar({
 }: UserSidebarProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [imageError, setImageError] = useState(false);
 
   function handleLogout() {
     logout();
-    queryClient.clear();
+    queryClient.invalidateQueries({ queryKey: ['user'] });
+    onOpenChange(false);
     router.push('/login');
   }
 
@@ -42,13 +45,16 @@ export default function UserSidebar({
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4 py-4">
           <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-            {user?.profilePicture ? (
+            {user?.profilePicture && !imageError ? (
               <Image
                 src={user.profilePicture}
                 alt="Profile"
                 width={96}
                 height={96}
                 className="object-cover"
+                onError={() => setImageError(true)}
+                priority
+                unoptimized
               />
             ) : (
               <UserIcon className="h-12 w-12 text-gray-600" />

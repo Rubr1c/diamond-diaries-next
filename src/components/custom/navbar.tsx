@@ -1,65 +1,65 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { UserIcon, FlameIcon, Menu } from 'lucide-react';
 import { useState } from 'react';
-import UserSidebar from './user-sidebar';
+import { CalendarIcon, MenuIcon, UserIcon, XIcon } from 'lucide-react';
 import { User } from '@/index/user';
+import UserSidebar from './user-sidebar';
 
 interface NavbarProps {
-  user?: User;
+  user: User | undefined;
 }
 
 export default function Navbar({ user }: NavbarProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileImageError, setProfileImageError] = useState(false);
+
   return (
     <>
-      <UserSidebar
-        user={user}
-        isOpen={sidebarOpen}
-        onOpenChange={setSidebarOpen}
-      />
-      <nav className="w-full bg-white px-4 py-2 flex items-center justify-between shadow-sm fixed top-0 left-0 z-10">
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/Diamond_Diaries_Logo_Teal.png"
-              alt="Diamond Diaries"
-              width={24}
-              height={24}
-              className="mr-2"
-            />
-            <span className="text-[#003243] font-semibold text-lg">
-              Diamond Diaries
-            </span>
-          </Link>
-        </div>
+      <nav className="bg-white border-b border-gray-200 px-4 py-2.5 fixed left-0 right-0 top-0 z-50">
+        <div className="flex flex-wrap justify-between items-center">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/Diamond_Diaries_Logo_Teal.png"
+                alt="Diamond Diaries Logo"
+                className="mr-3"
+                width={36}
+                height={36}
+              />
+              <span className="self-center text-xl font-semibold whitespace-nowrap text-[#1E4959]">
+                Diamond Diaries
+              </span>
+            </Link>
+          </div>
 
-        {/* Mobile menu button - only visible on mobile */}
-        <button
-          className="md:hidden flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-[#003243] hover:bg-gray-100 focus:outline-none"
-          onClick={() => setSidebarOpen(true)}
-        >
-          <Menu className="h-6 w-6" />
-        </button>
+          {/* Mobile menu button */}
+          <div className="flex items-center md:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+            >
+              {mobileMenuOpen ? (
+                <XIcon className="w-6 h-6" />
+              ) : (
+                <MenuIcon className="w-6 h-6" />
+              )}
+            </button>
+          </div>
 
-        <div className="hidden md:flex items-center space-x-6">
-          <Link href="/entries" className="text-gray-600 hover:text-[#003243]">
-            Journal Entries
-          </Link>
-          <Link
-            href="/analytics"
-            className="text-gray-600 hover:text-[#003243]"
-          >
-            Analytics
-          </Link>
+          {/* Desktop menu */}
+          <div className="hidden md:flex items-center space-x-4 ml-auto">
+            <Link
+              href="/entries"
+              className="py-2 px-3 text-[#1E4959] hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Entries
+            </Link>
 
-          <div className="flex items-center ml-2">
-            {/* Streaks icon */}
-            <div className="relative mr-3">
-              <div className="w-8 h-8 rounded-full bg-[#01C269] flex items-center justify-center">
-                <FlameIcon className="h-5 w-5 text-white" />
-              </div>
+            {/* Streak icon */}
+            <div className="relative">
+              <CalendarIcon className="h-5 w-5 text-[#1E4959]" />
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#003243] rounded-full flex items-center justify-center">
                 <span className="text-white text-xs">{user?.streak ?? 0}</span>
               </div>
@@ -71,13 +71,16 @@ export default function Navbar({ user }: NavbarProps) {
                 onClick={() => setSidebarOpen(true)}
                 className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer"
               >
-                {user?.profilePicture ? (
+                {user?.profilePicture && !profileImageError ? (
                   <Image
                     src={user.profilePicture}
                     alt="Profile"
                     width={32}
                     height={32}
                     className="object-cover"
+                    onError={() => setProfileImageError(true)}
+                    priority
+                    unoptimized
                   />
                 ) : (
                   <UserIcon className="h-5 w-5 text-gray-600" />
@@ -101,13 +104,16 @@ export default function Navbar({ user }: NavbarProps) {
                 }}
                 className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer"
               >
-                {user?.profilePicture ? (
+                {user?.profilePicture && !profileImageError ? (
                   <Image
                     src={user.profilePicture}
                     alt="Profile"
                     width={40}
                     height={40}
                     className="object-cover"
+                    onError={() => setProfileImageError(true)}
+                    priority
+                    unoptimized
                   />
                 ) : (
                   <UserIcon className="h-6 w-6 text-gray-600" />
@@ -116,34 +122,32 @@ export default function Navbar({ user }: NavbarProps) {
               <div>
                 <p className="font-medium">{user?.username || 'User'}</p>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 rounded-full bg-[#01C269] flex items-center justify-center mr-1">
-                    <FlameIcon className="h-3 w-3 text-white" />
-                  </div>
-                  <span className="text-xs text-gray-600">
-                    {user?.streak ?? 0} day streak
+                  <CalendarIcon className="h-4 w-4 text-[#1E4959]" />
+                  <span className="text-sm ml-1">
+                    Streak: {user?.streak ?? 0}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Navigation links */}
+            {/* Mobile menu links */}
             <Link
-              href="/"
-              className="text-gray-600 hover:text-[#003243] py-2"
+              href="/entries"
+              className="py-2 px-3 text-[#1E4959] hover:bg-gray-100 rounded-md transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Journal Entries
-            </Link>
-            <Link
-              href="/analytics"
-              className="text-gray-600 hover:text-[#003243] py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Analytics
+              Entries
             </Link>
           </div>
         </div>
       )}
+
+      {/* User sidebar */}
+      <UserSidebar
+        user={user}
+        isOpen={sidebarOpen}
+        onOpenChange={setSidebarOpen}
+      />
     </>
   );
 }

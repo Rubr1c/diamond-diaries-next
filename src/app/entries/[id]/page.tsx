@@ -1,24 +1,19 @@
 'use client';
 
-import { fetchEntryByUuid } from "@/lib/api";
-import { editEntry } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { fetchEntryByUuid } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 
-export default function EntryPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function EntryPage() {
+  const params = useParams();
 
-  const {data: entry} = useQuery({
+  const id = params.id as string;
+  const { data: entry } = useQuery({
     queryKey: [`entry-${id}`],
     queryFn: () => fetchEntryByUuid(id),
     retry: false,
-    refetchOnWindowFocus: false
-  })
-
-
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <div className="mt-20">
