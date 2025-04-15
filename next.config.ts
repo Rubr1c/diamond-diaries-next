@@ -2,7 +2,6 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['lh3.googleusercontent.com'],
     // Add remotePatterns to further enforce security and improve handling of Google images
     remotePatterns: [
       {

@@ -1,12 +1,13 @@
 'use client';
 
-import { fetchEntryByUuid, editEntry } from '@/lib/api';
+import { fetchEntryByUuid, editEntry, getAllMediaForEntry } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
+import Image from 'next/image';
 
 export default function EntryPage() {
   const params = useParams();
@@ -21,6 +22,15 @@ export default function EntryPage() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  const {data: media} = useQuery({
+    queryKey: [`media-${id}`],
+    queryFn: () => getAllMediaForEntry(entry?.id),
+    enabled: !!entry,
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 900000,
+  })
 
   const handleGeneratePdf = async () => {
     if (!entryRef.current) return;
@@ -87,6 +97,7 @@ export default function EntryPage() {
     queryClient.invalidateQueries({ queryKey: [`entry-${id}`] });
     queryClient.invalidateQueries({ queryKey: ['entries'] });
   }
+  
 
   return (
     <div className="mt-20 flex flex-col items-center justify-center px-4">
@@ -148,6 +159,9 @@ export default function EntryPage() {
         Export
       </button>
       <p className="text-gray-600 text-sm mt-2">{entry?.wordCount} words</p>
+      {
+        media && media?.length > 0 && media?.map((entryMedia) => <img src={entryMedia.presignedUrl} alt='image'/>)
+      }
     </div>
   );
 }

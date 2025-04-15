@@ -1,5 +1,6 @@
 import { Entry } from '@/index/entry';
 import { Folder } from '@/index/folder';
+import { Media } from '@/index/media';
 import { User } from '@/index/user';
 import axios from 'axios';
 
@@ -291,6 +292,15 @@ export async function removeUserFromSharedEntry(id: string, userEmail: string) {
 
 export async function deleteEntry(entryId: bigint) {
   await api.delete(`/entry/${entryId}`);
+}
+
+export async function getAllMediaForEntry(entryId: bigint | undefined ): Promise<Media[]>  {
+  if(!entryId){
+    return [];
+  }
+  const res = await api.get(`/entry/${entryId}/media`);
+  console.log(res.data)
+  return res.data
 }
 
 export default api;
