@@ -2,12 +2,6 @@ export interface Media{
     id: bigint,
     entryId: bigint,
     presignedUrl: string,
-    type: MediaType,
+    type: "IMAGE" | "VIDEO" | "FILE",
 }
 
-
-export enum MediaType{
-    IMAGE,
-    VIDEO,
-    FILE,
-}

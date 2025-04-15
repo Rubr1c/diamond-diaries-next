@@ -7,7 +7,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
-import Image from 'next/image';
+import { MediaType } from '@/index/media';
 
 export default function EntryPage() {
   const params = useParams();
@@ -158,10 +158,18 @@ export default function EntryPage() {
       >
         Export
       </button>
-      <p className="text-gray-600 text-sm mt-2">{entry?.wordCount} words</p>
       {
-        media && media?.length > 0 && media?.map((entryMedia) => <img src={entryMedia.presignedUrl} alt='image'/>)
+        media && media?.length > 0 && media?.map((entryMedia) => {
+
+          if(entryMedia.type == "IMAGE") return <img src={entryMedia.presignedUrl} alt='image'/>
+          else if(entryMedia.type == "VIDEO") return (
+          <video width="320" height="240" controls>
+            <source src={entryMedia.presignedUrl} type="video/mp4"/>
+            Your browser does not support the video tag.
+          </video>)
+        })
       }
+      <p className="text-gray-600 text-sm mt-2">{entry?.wordCount} words</p>
     </div>
   );
 }

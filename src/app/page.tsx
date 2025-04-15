@@ -17,7 +17,6 @@ export default function Home() {
   }
 
   if (error) {
-    localStorage.removeItem('token');
     router.push('/login');
     return null;
   }
