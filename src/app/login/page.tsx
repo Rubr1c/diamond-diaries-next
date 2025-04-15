@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { login } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
+import { GoogleSignInButton } from '@/components/custom/google-sign-in-button';
 import { VerificationCodeModal } from '@/components/modals/VerificationCodeModal';
 import { verify2fa } from '@/lib/api';
 

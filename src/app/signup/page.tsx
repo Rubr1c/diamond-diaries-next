@@ -18,7 +18,7 @@ import { register, verifyEmail } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { VerificationCodeModal } from '@/components/modals/VerificationCodeModal';
-import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
+import { GoogleSignInButton } from '@/components/custom/google-sign-in-button';
 
 export default function Login() {
   const router = useRouter();
