@@ -7,7 +7,6 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
-import Image from 'next/image';
 
 export default function EntryPage() {
   const params = useParams();

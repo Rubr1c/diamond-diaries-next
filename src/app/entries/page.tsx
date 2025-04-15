@@ -19,13 +19,6 @@ export default function EntriesPage() {
   const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const { error: userError } = useQuery({
-    queryKey: ['user'],
-    queryFn: getUser,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
-
   const {
     data: entries,
     isLoading,
@@ -60,9 +53,7 @@ export default function EntriesPage() {
     return <div>Loading...</div>;
   }
 
-  if (error || userError) {
-    localStorage.removeItem('token');
-    router.push('/login');
+  if (error) {
     return null;
   }
 
