@@ -2,15 +2,21 @@
 
 import { fetchEntryByUuid, editEntry } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { useRef } from 'react';
+import EntryEditPage from './edit/page';
 
 export default function EntryPage() {
   const params = useParams();
   const queryClient = useQueryClient();
+  const entryRef = useRef(null);
+  const router = useRouter();
 
   const id = params.id as string;
   const { data: entry } = useQuery({
@@ -19,6 +25,69 @@ export default function EntryPage() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  const handleGeneratePdf = async () => {
+    if (!entryRef.current) return;
+
+    const contentElement = entryRef.current;
+
+    // Capture the content as an image with html2canvas
+    const canvas = await html2canvas(contentElement, {
+      scale: 2, // Higher quality
+      useCORS: true, // Handle images from different origins
+      logging: false,
+      windowWidth: contentElement.scrollWidth,
+      windowHeight: contentElement.scrollHeight,
+    });
+
+    // Calculate dimensions to fit in A4 with margins
+    const margin = 20; // 20mm margins
+    const imgWidth = 210 - 2 * margin; // A4 width minus margins
+    const pageHeight = 297 - 2 * margin; // A4 height minus margins
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    // Create PDF
+    const pdf = new jsPDF({
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait',
+    });
+
+    // Add the image to PDF with margins
+    pdf.addImage(
+      canvas.toDataURL('image/jpeg', 1.0),
+      'JPEG',
+      margin,
+      margin,
+      imgWidth,
+      imgHeight
+    );
+
+    // If content is longer than one page, add new pages
+    let heightLeft = imgHeight - pageHeight;
+    let position = -pageHeight;
+
+    while (heightLeft >= 0) {
+      position = position - pageHeight;
+      pdf.addPage();
+      pdf.addImage(
+        canvas.toDataURL('image/jpeg', 1.0),
+        'JPEG',
+        margin,
+        position + margin,
+        imgWidth,
+        imgHeight
+      );
+      heightLeft -= pageHeight;
+    }
+
+    await pdf.save('document.pdf');
+  };
+
+  function handleEditEntry() {
+    if (!entry) return;
+    router.push(`/entries/${id}/edit`);
+  }
 
   async function handleFavoriteToggle() {
     if (!entry) return;
@@ -32,7 +101,16 @@ export default function EntryPage() {
   return (
     <div className="mt-20 flex flex-col items-center justify-center px-4">
       <h1 className="text-2xl font-bold">{entry?.title}</h1>
-      <div className="prose prose-lg w-full">
+      <button
+        onClick={handleEditEntry}
+        className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg border border-gray-300 shadow-sm hover:shadow-md transition-shadow"
+      >
+        Edit
+      </button>
+      <div
+        className="prose prose-lg w-full max-w-4xl mx-auto px-8"
+        ref={entryRef}
+      >
         <ReactMarkdown
           components={{
             h1: ({ ...props }) => (
@@ -58,7 +136,10 @@ export default function EntryPage() {
               <a className="text-blue-500 hover:underline" {...props} />
             ),
             code: ({ ...props }) => (
-              <code className="bg-gray-200 p-1 rounded" {...props} />
+              <code
+                className="bg-gray-200 p-1 rounded text-sm break-words whitespace-pre-wrap max-w-full overflow-x-auto"
+                {...props}
+              />
             ),
             blockquote: ({ ...props }) => (
               <blockquote
@@ -67,7 +148,10 @@ export default function EntryPage() {
               />
             ),
             img: ({ ...props }) => (
-              <img className="max-w-72 h-auto" {...props} />
+              <img
+                className="max-w-[500px] max-h-[400px] h-auto object-contain mx-auto"
+                {...props}
+              />
             ),
             table: ({ ...props }) => (
               <table
@@ -90,6 +174,12 @@ export default function EntryPage() {
             ),
             hr: ({ ...props }) => (
               <hr className="border-t-2 border-gray-300 my-4" {...props} />
+            ),
+            pre: ({ ...props }) => (
+              <pre
+                className="bg-gray-200 p-4 rounded-lg text-sm overflow-x-auto max-w-full my-4"
+                {...props}
+              />
             ),
           }}
           remarkPlugins={[remarkGfm]}
@@ -135,6 +225,12 @@ export default function EntryPage() {
           </span>
         </button>
       </div>
+      <button
+        onClick={handleGeneratePdf}
+        className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg border border-gray-300 shadow-sm hover:shadow-md transition-shadow"
+      >
+        Export
+      </button>
       <p className="text-gray-600 text-sm mt-2">{entry?.wordCount} words</p>
     </div>
   );
