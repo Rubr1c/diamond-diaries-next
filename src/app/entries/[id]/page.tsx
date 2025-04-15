@@ -7,10 +7,6 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
-<<<<<<< HEAD
-import { MediaType } from '@/index/media';
-=======
->>>>>>> 418f38328aad33ef58c7c4696a13bc4fd7bd0e59
 
 export default function EntryPage() {
   const params = useParams();

@@ -25,11 +25,7 @@ export default function Home() {
   }
 
   if (error) {
-<<<<<<< HEAD
     router.push('/login');
-=======
-    // ...side effect handled in useEffect, render nothing
->>>>>>> 418f38328aad33ef58c7c4696a13bc4fd7bd0e59
     return null;
   }
 
