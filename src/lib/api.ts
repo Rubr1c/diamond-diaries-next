@@ -24,6 +24,13 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export async function login(email: string, password: string) {
   const response = await api.post('/auth/login', { email, password });
   if (response.status == 202) return null;
@@ -294,13 +301,15 @@ export async function deleteEntry(entryId: bigint) {
   await api.delete(`/entry/${entryId}`);
 }
 
-export async function getAllMediaForEntry(entryId: bigint | undefined ): Promise<Media[]>  {
-  if(!entryId){
+export async function getAllMediaForEntry(
+  entryId: bigint | undefined
+): Promise<Media[]> {
+  if (!entryId) {
     return [];
   }
   const res = await api.get(`/entry/${entryId}/media`);
-  console.log(res.data)
-  return res.data
+  console.log(res.data);
+  return res.data;
 }
 
 export default api;
