@@ -1,7 +1,12 @@
 'use client';
 
 import { Entry } from '@/index/entry';
-import { fetchEntries, searchEntries, deleteEntry, editEntry } from '@/lib/api';
+import {
+  fetchEntries,
+  searchEntries,
+  deleteEntry,
+  editEntry,
+} from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
@@ -56,15 +61,15 @@ export default function EntriesPage() {
   }
 
   // Function to strip markdown and truncate text
-  async function stripMarkdownAndTruncate(
+  function stripMarkdownAndTruncate(
     content: string,
     maxLength: number
-  ): Promise<string> {
+  ): string {
     // Convert escaped newlines (\n) into actual newlines
     const normalized = content.replace(/\\n/g, '\n');
 
     // Convert Markdown to HTML
-    const html = await marked(normalized);
+    const html = marked(normalized);
 
     // Strip all HTML tags
     const plainText = html
