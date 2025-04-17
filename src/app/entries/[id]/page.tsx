@@ -7,8 +7,11 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
+import { useUser } from '@/hooks/useUser';
 
 export default function EntryPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: user } = useUser();
   const params = useParams();
   const queryClient = useQueryClient();
   const entryRef = useRef<HTMLDivElement>(null);

@@ -1,22 +1,10 @@
 'use client';
 
-import { getUser } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/useUser';
 
 export default function Account() {
-  const router = useRouter();
-  const { data: user, error } = useQuery({
-    queryKey: ['user'],
-    queryFn: getUser,
-    retry: false,
-  });
+  const { data: user } = useUser();
 
-  if (error) {
-    localStorage.removeItem('token');
-    router.push('/login');
-    return null;
-  }
 
   return (
     <div>

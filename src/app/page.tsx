@@ -1,33 +1,13 @@
 'use client';
 
-import { getUser } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useUser } from '@/hooks/useUser';
 
 export default function Home() {
-  const router = useRouter();
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['user'],
-    queryFn: getUser,
-    retry: false,
-  });
-
-  useEffect(() => {
-    if (error) {
-      localStorage.removeItem('token');
-      router.push('/login');
-    }
-  }, [error, router]);
+  const { data: user, isLoading } = useUser();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading your profile…</div>;
   }
 
-  if (error) {
-    router.push('/login');
-    return null;
-  }
-
-  return <h1>{data?.username}</h1>;
+  return <h1>{user!.username}</h1>;
 }

@@ -1,18 +1,16 @@
 'use client';
 
 import { Entry } from '@/index/entry';
-import {
-  fetchEntries,
-  searchEntries,
-  deleteEntry,
-  editEntry,
-} from '@/lib/api';
+import { fetchEntries, searchEntries, deleteEntry, editEntry } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { marked } from 'marked';
+import { useUser } from '@/hooks/useUser';
 
 export default function EntriesPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: user } = useUser();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
@@ -69,7 +67,7 @@ export default function EntriesPage() {
     const normalized = content.replace(/\\n/g, '\n');
 
     // Convert Markdown to HTML
-    const html = marked(normalized);
+    const html = marked(normalized) as string;
 
     // Strip all HTML tags
     const plainText = html

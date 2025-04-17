@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
+import { useUser } from '@/hooks/useUser';
 
 function getCookie(name: string) {
   const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -19,6 +20,8 @@ function setCookie(name: string, value: string, days = 365) {
 }
 
 export default function EntryEditPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: user } = useUser();
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -152,3 +155,4 @@ export default function EntryEditPage() {
     </div>
   );
 }
+
