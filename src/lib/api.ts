@@ -133,7 +133,6 @@ export async function fetchEntries(
 
 export async function fetchEntry(entryId: bigint): Promise<Entry> {
   const res = await api.get(`/entry/${entryId}`);
-
   return res.data;
 }
 
@@ -150,21 +149,19 @@ export async function fetchEntriesByDate(date: string): Promise<Entry[]> {
 }
 
 export async function fetchAllEntriesByTags(
-  tagIds: bigint[],
+  tagNames: string[],
   offset: number,
   size: number
 ) {
   const res = await api.get('/entry/tag', {
-    params: { offset, size, tagIds },
+    params: { offset, size, tagNames },
   });
 
   return res.data;
 }
 
-export async function addTagsToEntry(entryId: bigint, tagIds: bigint[]) {
-  const res = await api.post(`/entry/${entryId}/tag/new`, {
-    tagIds,
-  });
+export async function addTagsToEntry(entryId: bigint, tagNames: string[]) {
+  const res = await api.post(`/entry/${entryId}/tag/new`, tagNames);
 
   return res.data;
 }
@@ -181,22 +178,15 @@ export async function searchEntries(query: string): Promise<Entry[]> {
   return res.data;
 }
 
-export async function newEntry(
-  title: string,
-  content: string,
-  folderId: bigint,
-  tagIds: bigint[],
-  wordCount: number,
-  isFavorite: boolean
-) {
-  const res = await api.post('/entry/new', {
-    title,
-    content,
-    folderId,
-    tagIds,
-    wordCount,
-    isFavorite,
-  });
+export async function newEntry(values: {
+  title: string;
+  content: string;
+  folderId?: bigint;
+  tagNames?: string[];
+  wordCount: number;
+  isFavorite: boolean;
+}) {
+  const res = await api.post('/entry/new', values);
 
   return res.data;
 }
@@ -207,7 +197,7 @@ export async function editEntry(
     title?: string;
     content?: string;
     folderId?: bigint;
-    tagIds?: bigint[];
+    tagNames?: string[];
     wordCount?: number;
     isFavorite?: boolean;
   }

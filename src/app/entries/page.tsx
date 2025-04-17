@@ -173,6 +173,16 @@ export default function EntriesPage() {
                   >
                     Delete
                   </button>
+                  <ul>
+                    {entry.tags.map((tag, idx) => (
+                      <li
+                        key={idx}
+                        className="inline-block bg-[#003243] text-white rounded-full px-2 py-1 text-sm mr-2 mb-2"
+                      >
+                        {tag}
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ))}
           </ul>
