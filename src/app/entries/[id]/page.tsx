@@ -160,9 +160,9 @@ export default function EntryPage() {
       {
         media && media?.length > 0 && media?.map((entryMedia) => {
 
-          if(entryMedia.type == "IMAGE") return <img src={entryMedia.presignedUrl} alt='image'/>
+          if(entryMedia.type == "IMAGE") return <img src={entryMedia.presignedUrl} key={entryMedia.id} alt='image'/>
           else if(entryMedia.type == "VIDEO") return (
-          <video width="320" height="240" controls>
+          <video width="320" height="240" controls key={entryMedia.id}>
             <source src={entryMedia.presignedUrl} type="video/mp4"/>
             Your browser does not support the video tag.
           </video>)
