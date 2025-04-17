@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { marked } from 'marked';
 import { useUser } from '@/hooks/useUser';
+import ShareEntryModal from '@/components/modals/ShareEntryModal'; // Import the modal
 
 export default function EntriesPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -15,6 +16,8 @@ export default function EntriesPage() {
   const router = useRouter();
   const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // State for modal visibility
+  const [selectedEntryId, setSelectedEntryId] = useState<bigint | null>(null); // State for selected entry ID
 
   const {
     data: entries,
@@ -96,6 +99,12 @@ export default function EntriesPage() {
     });
   }
 
+  function handleShareClick(e: React.MouseEvent, entryId: bigint) {
+    e.stopPropagation(); // Prevent triggering the entry click
+    setSelectedEntryId(entryId);
+    setIsShareModalOpen(true);
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
       <div className="container mx-auto p-6">
@@ -122,14 +131,14 @@ export default function EntriesPage() {
               (searchedEntries ?? entries)?.map((entry) => (
                 <li
                   key={entry.id}
-                  className="p-4 border rounded-lg shadow-sm relative hover:shadow-lg transition-shadow duration-200 hover:p-5 transform hover:-translate-y-1 cursor-pointer"
-                  onClick={() => handleEntryClick(entry.publicId)}
+                  className="p-4 border rounded-lg shadow-sm relative hover:shadow-lg transition-shadow duration-200 hover:p-5 transform hover:-translate-y-1" // Removed cursor-pointer here as inner div handles it
+                  // Removed onClick here to allow buttons inside to work without navigating immediately
                 >
                   {/* Heart icon for favorites */}
                   <div
-                    className="absolute top-2 right-2"
+                    className="absolute top-2 right-2 cursor-pointer p-1" // Added padding for easier clicking
                     onClick={(e) => {
-                      e.stopPropagation();
+                      e.stopPropagation(); // Prevent entry click
                       handleFavoriteToggle(entry);
                     }}
                   >
@@ -159,32 +168,64 @@ export default function EntriesPage() {
                       </svg>
                     )}
                   </div>
-                  <h2 className="text-xl font-semibold">{entry.title}</h2>
-                  <p className="text-gray-600">
-                    {stripMarkdownAndTruncate(entry.content, 200)}
-                  </p>
-                  <p>{entry.journalDate.toString()}</p>
-                  <button
-                    className="absolute bottom-2 right-2 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                    onClick={() => handleDelete(entry.id)}
+                  {/* Content clickable area */}
+                  <div
+                    onClick={() => handleEntryClick(entry.publicId)}
+                    className="cursor-pointer"
                   >
-                    Delete
-                  </button>
-                  <ul>
-                    {entry.tags.map((tag, idx) => (
-                      <li
-                        key={idx}
-                        className="inline-block bg-[#003243] text-white rounded-full px-2 py-1 text-sm mr-2 mb-2"
+                    <h2 className="text-xl font-semibold">{entry.title}</h2>
+                    <p className="text-gray-600 mb-2">
+                      {' '}
+                      {/* Added margin bottom */}
+                      {stripMarkdownAndTruncate(entry.content, 200)}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-2">
+                      {new Date(entry.journalDate).toLocaleDateString()}
+                    </p>{' '}
+                    {/* Formatted date */}
+                    {/* Corrected Tag rendering section */}
+                    <ul className="mb-10">
+                      {' '}
+                      {/* Added margin bottom to push buttons down */}
+                      {entry.tags.map((tag, idx) => (
+                        <li
+                          key={idx}
+                          className="inline-block bg-[#003243] text-white rounded-full px-2 py-1 text-sm mr-2 mb-2"
+                        >
+                          {tag}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  {/* Buttons container */}
+                  <div className="absolute bottom-2 right-2 flex space-x-2">
+                     <button
+                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm" // Share button style
+                        onClick={(e) => handleShareClick(e, entry.id)}
                       >
-                        {tag}
-                      </li>
-                    ))}
-                  </ul>
+                        Share
+                      </button>
+                    <button
+                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm" // Delete button style
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent entry click
+                        handleDelete(entry.id);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </li>
               ))}
           </ul>
         </div>
       </div>
+      {/* Render the modal */}
+      <ShareEntryModal
+        entryId={selectedEntryId}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+      />
     </div>
   );
 }
