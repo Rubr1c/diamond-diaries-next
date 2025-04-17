@@ -25,7 +25,7 @@ export default function Home() {
   }
 
   if (error) {
-    // ...side effect handled in useEffect, render nothing
+    router.push('/login');
     return null;
   }
 
