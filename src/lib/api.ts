@@ -166,6 +166,17 @@ export async function addTagsToEntry(entryId: bigint, tagNames: string[]) {
   return res.data;
 }
 
+export async function removeTagFromEntry(entryId: bigint, tagName: string) {
+  const res = await api.delete(`/entry/${entryId}/tag/${tagName}`);
+
+  return res.data;
+}
+
+export async function fetchAllTags(): Promise<string[]> {
+  const res = await api.get('/tags');
+  return res.data;
+}
+
 export async function searchEntries(query: string): Promise<Entry[]> {
   const res = await api.get('/entry/search', {
     params: {
@@ -178,6 +189,40 @@ export async function searchEntries(query: string): Promise<Entry[]> {
   return res.data;
 }
 
+// Helper function to convert BigInts in an object to strings
+function convertBigIntToString(obj: unknown): unknown {
+  if (obj === null || typeof obj !== 'object') {
+    // Handle primitives (including bigint itself if passed directly)
+    if (typeof obj === 'bigint') {
+      return obj.toString();
+    }
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    // If it's an array, map over its elements recursively
+    return obj.map(convertBigIntToString);
+  }
+
+  // If it's a non-null object (and not an array)
+  const newObj: { [key: string]: unknown } = {}; // Use unknown for values
+  // Assert obj as indexable Record<string, unknown> for safe property access
+  for (const key in obj as Record<string, unknown>) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = (obj as Record<string, unknown>)[key]; // Access value safely
+      if (typeof value === 'bigint') {
+        newObj[key] = value.toString();
+      } else if (typeof value === 'object') {
+        // Recurse for nested objects/arrays
+        newObj[key] = convertBigIntToString(value);
+      } else {
+        newObj[key] = value; // Keep other primitives as they are
+      }
+    }
+  }
+  return newObj;
+}
+
 export async function newEntry(values: {
   title: string;
   content: string;
@@ -186,7 +231,9 @@ export async function newEntry(values: {
   wordCount: number;
   isFavorite: boolean;
 }) {
-  const res = await api.post('/entry/new', values);
+  // Convert BigInt to string before sending
+  const dataToSend = convertBigIntToString(values);
+  const res = await api.post('/entry/new', dataToSend);
 
   return res.data;
 }
@@ -202,17 +249,26 @@ export async function editEntry(
     isFavorite?: boolean;
   }
 ) {
-  const res = await api.put(`/entry/${entryId}/update`, updates);
+  // Convert BigInts in the updates object to strings before sending
+  const dataToSend = convertBigIntToString(updates);
+  // Ensure the entryId in the path is also a string
+  const res = await api.put(`/entry/${entryId.toString()}/update`, dataToSend);
   return res.data;
 }
 
 export async function addEntryToFolder(entryId: bigint, folderId: bigint) {
-  const res = await api.post(`/entry/${entryId}/add-to-folder/${folderId}`);
+  // Convert BigInts to strings for path parameters
+  const res = await api.post(
+    `/entry/${entryId.toString()}/add-to-folder/${folderId.toString()}`
+  );
   return res.data;
 }
 
 export async function removeEntryFromFolder(entryId: bigint) {
-  const res = await api.delete(`/entry/${entryId}/remove-from-folder`);
+  // Convert BigInt to string for path parameter
+  const res = await api.delete(
+    `/entry/${entryId.toString()}/remove-from-folder`
+  );
   return res.data;
 }
 
@@ -288,7 +344,8 @@ export async function removeUserFromSharedEntry(id: string, userEmail: string) {
 }
 
 export async function deleteEntry(entryId: bigint) {
-  await api.delete(`/entry/${entryId}`);
+  // Convert BigInt to string for path parameter
+  await api.delete(`/entry/${entryId.toString()}`);
 }
 
 export async function getAllMediaForEntry(

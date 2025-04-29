@@ -23,14 +23,14 @@ export default function EntryPage() {
     refetchOnWindowFocus: false,
   });
 
-  const {data: media} = useQuery({
+  const { data: media } = useQuery({
     queryKey: [`media-${id}`],
     queryFn: () => getAllMediaForEntry(entry?.id),
     enabled: !!entry,
     retry: false,
     refetchOnWindowFocus: false,
     staleTime: 900000,
-  })
+  });
 
   const handleGeneratePdf = async () => {
     if (!entryRef.current) return;
@@ -85,8 +85,6 @@ export default function EntryPage() {
     await pdf.save('document.pdf');
   };
 
-  
-
   return (
     <div className="mt-20 flex flex-col items-center justify-center px-4">
       <h1 className="text-2xl font-bold">{entry?.title}</h1>
@@ -105,17 +103,25 @@ export default function EntryPage() {
       >
         Export
       </button>
-      {
-        media && media?.length > 0 && media?.map((entryMedia) => {
-
-          if(entryMedia.type == "IMAGE") return <img src={entryMedia.presignedUrl} key={entryMedia.id} alt='image'/>
-          else if(entryMedia.type == "VIDEO") return (
-          <video width="320" height="240" controls key={entryMedia.id}>
-            <source src={entryMedia.presignedUrl} type="video/mp4"/>
-            Your browser does not support the video tag.
-          </video>)
-        })
-      }
+      {media &&
+        media?.length > 0 &&
+        media?.map((entryMedia) => {
+          if (entryMedia.type == 'IMAGE')
+            return (
+              <img
+                src={entryMedia.presignedUrl}
+                key={entryMedia.id}
+                alt="image"
+              />
+            );
+          else if (entryMedia.type == 'VIDEO')
+            return (
+              <video width="320" height="240" controls key={entryMedia.id}>
+                <source src={entryMedia.presignedUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            );
+        })}
       <p className="text-gray-600 text-sm mt-2">{entry?.wordCount} words</p>
     </div>
   );

@@ -26,7 +26,7 @@ const ShareEntryModal: React.FC<ShareEntryModalProps> = ({
       // Handle success, e.g., show a success message, copy link to clipboard
       console.log('Shared entry created:', data);
       alert(
-        `Shareable link created: ${window.location.origin}/shared/${data}`
+        `Shareable link created: ${window.location.origin}/entries/shared/${data}`
       ); // Adjust URL as needed
       onClose(); // Close the modal on success
     },
