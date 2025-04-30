@@ -8,6 +8,8 @@ import html2canvas from 'html2canvas';
 import { useRef } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
 import { useUser } from '@/hooks/useUser';
+import Image from 'next/image';
+
 
 export default function EntryPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -104,24 +106,40 @@ export default function EntryPage() {
         Export
       </button>
       {media &&
-        media?.length > 0 &&
-        media?.map((entryMedia) => {
-          if (entryMedia.type == 'IMAGE')
-            return (
-              <img
-                src={entryMedia.presignedUrl}
-                key={entryMedia.id}
-                alt="image"
-              />
-            );
-          else if (entryMedia.type == 'VIDEO')
-            return (
-              <video width="320" height="240" controls key={entryMedia.id}>
-                <source src={entryMedia.presignedUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            );
-        })}
+              media.length > 0 &&
+              media.map((entryMedia) => {
+                if (entryMedia.type === 'IMAGE') {
+                  return (
+                    <Image
+                      src={entryMedia.presignedUrl}
+                      key={entryMedia.id}
+                      alt="media image"
+                      width={320}
+                      height={240}
+                      className="object-cover"
+                    />
+                  );
+                } else if (entryMedia.type === 'VIDEO') {
+                  return (
+                    <video width="320" height="240" controls key={entryMedia.id}>
+                      <source src={entryMedia.presignedUrl} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  );
+                } else if (entryMedia.type === 'FILE') {
+                  return (
+                    <a
+                      href={entryMedia.presignedUrl}
+                      key={entryMedia.id}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline"
+                    >
+                      Download File
+                    </a>
+                  );
+                }
+              })}
       <p className="text-gray-600 text-sm mt-2">{entry?.wordCount} words</p>
     </div>
   );
