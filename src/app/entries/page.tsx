@@ -26,7 +26,7 @@ import NewEntryModal from '@/components/modals/NewEntryModal';
 import { TagSelector } from '@/components/custom/tag-selector';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
-import { JournalCalendar } from '@/components/ui/calendar';
+import { JournalCalendar } from '@/components/custom/calendar';
 import { format } from 'date-fns';
 
 const PAGE_SIZE = 10;
@@ -42,8 +42,13 @@ export default function EntriesPage() {
   const [selectedEntryId, setSelectedEntryId] = useState<bigint | null>(null);
   const [isNewEntryModalOpen, setIsNewEntryModalOpen] = useState(false);
   const [filterTags, setFilterTags] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
-  const [addingTagsToEntry, setAddingTagsToEntry] = useState<bigint | null>(null);
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
+    null,
+    null,
+  ]);
+  const [addingTagsToEntry, setAddingTagsToEntry] = useState<bigint | null>(
+    null
+  );
 
   // Fetch all available tags
   const { data: availableTags = [] } = useQuery({
@@ -75,9 +80,10 @@ export default function EntriesPage() {
   } = useInfiniteQuery({
     queryKey: ['entries', filterTags],
     queryFn: async ({ pageParam = 0 }) => {
-      const result = filterTags.length > 0
-        ? await fetchAllEntriesByTags(filterTags, pageParam, PAGE_SIZE)
-        : await fetchEntries(pageParam, PAGE_SIZE);
+      const result =
+        filterTags.length > 0
+          ? await fetchAllEntriesByTags(filterTags, pageParam, PAGE_SIZE)
+          : await fetchEntries(pageParam, PAGE_SIZE);
       return {
         entries: result,
         nextPage: result.length === PAGE_SIZE ? pageParam + 1 : undefined,

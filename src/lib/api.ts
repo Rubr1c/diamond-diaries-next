@@ -143,9 +143,15 @@ export async function fetchEntryByUuid(entryUuid: string): Promise<Entry> {
 }
 
 export async function fetchEntriesByDate(date: string): Promise<Entry[]> {
-  const res = await api.get(`/entry/date/${date}`);
-
-  return res.data;
+  try {
+    const res = await api.get(`/entry/date/${date}`);
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return [];
+    }
+    throw error;
+  }
 }
 
 export async function fetchEntriesByDateRange(
