@@ -27,23 +27,12 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { entrySchema } from '@/schemas/entry-schemas';
 
 interface NewEntryModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const entrySchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  content: z.string().min(1, 'Content is required'),
-  folderId: z.string().optional(), // Store as string initially
-  tagNames: z.array(z.string()).optional(),
-});
 
 type EntryFormData = z.infer<typeof entrySchema>;
 
@@ -141,21 +130,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
       handleAddTag(currentTagInput);
       setIsTagPopoverOpen(false);
     }
-  };
-
-  // Prevent dropdown from closing when clicking inside it
-  const handleTagPopoverOpenChange = (open: boolean) => {
-    // Only allow manual closing, don't close when interacting with the popover content
-    if (!open && isTagPopoverOpen) {
-      // We're trying to close the popover
-      if (document.activeElement && 
-          document.activeElement.closest('[data-tag-popover-content]')) {
-        // If focus is still inside the popover content, don't close it
-        return;
-      }
-    }
-    setIsTagPopoverOpen(open);
-  };
+  };  
 
   useEffect(() => {
     if (!isOpen) {
@@ -302,7 +277,6 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
                 }}
               />
               
-              {/* Custom Tag Dropdown instead of Popover */}
               {isTagPopoverOpen && (
                 <div 
                   className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-[200px] overflow-y-auto"
@@ -331,7 +305,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
                                 onClick={handleCreateNewTag}
                                 className="mt-1"
                               >
-                                Create "{currentTagInput}"
+                                Create {currentTagInput}
                               </Button>
                             </>
                           ) : (
