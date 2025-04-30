@@ -5,7 +5,7 @@ import { User } from '@/index/user';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://3.92.229.33:8080' + '/api/' + 'v1',
+  baseURL: 'https://diamond-diaries.online:8080' + '/api/' + 'v1',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -380,6 +380,7 @@ export async function uploadMediaToEntry(
   mediaType: 'IMAGE' | 'VIDEO' | 'FILE',
   file: File
 ): Promise<string> {
+  console.log(localStorage.getItem('token'));
   const formData = new FormData();
   formData.append('mediaType', mediaType);
   formData.append('file', file);
