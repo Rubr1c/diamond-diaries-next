@@ -153,8 +153,8 @@ export async function fetchAllEntriesByTags(
   offset: number,
   size: number
 ) {
-  const res = await api.get('/entry/tag', {
-    params: { offset, size, tagNames },
+  const res = await api.post('/entry/tag', tagNames, {
+    params: { offset, size },
   });
 
   return res.data;
@@ -259,17 +259,13 @@ export async function editEntry(
 
 export async function addEntryToFolder(entryId: bigint, folderId: bigint) {
   // Convert BigInts to strings for path parameters
-  const res = await api.post(
-    `/entry/${entryId}/add-to-folder/${folderId}`
-  );
+  const res = await api.post(`/entry/${entryId}/add-to-folder/${folderId}`);
   return res.data;
 }
 
 export async function removeEntryFromFolder(entryId: bigint) {
   // Convert BigInt to string for path parameter
-  const res = await api.delete(
-    `/entry/${entryId}/remove-from-folder`
-  );
+  const res = await api.delete(`/entry/${entryId}/remove-from-folder`);
   return res.data;
 }
 
@@ -368,15 +364,11 @@ export async function uploadMediaToEntry(
   const formData = new FormData();
   formData.append('mediaType', mediaType);
   formData.append('file', file);
-  const res = await api.post(
-    `/entry/${entryId}/media/new`,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }
-  );
+  const res = await api.post(`/entry/${entryId}/media/new`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return res.data;
 }
 

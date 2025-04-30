@@ -7,14 +7,20 @@ import {
   deleteEntry,
   editEntry,
   removeTagFromEntry,
+  fetchAllTags,
+  addTagsToEntry,
+  fetchAllEntriesByTags,
 } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { marked } from 'marked';
 import { useUser } from '@/hooks/useUser';
-import ShareEntryModal from '@/components/modals/ShareEntryModal'; // Import the modal
-import NewEntryModal from '@/components/modals/NewEntryModal'; // Import the new modal
+import ShareEntryModal from '@/components/modals/ShareEntryModal';
+import NewEntryModal from '@/components/modals/NewEntryModal';
+import { TagSelector } from '@/components/custom/tag-selector';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 export default function EntriesPage() {
   const {} = useUser();
@@ -22,20 +28,41 @@ export default function EntriesPage() {
   const router = useRouter();
   const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // State for modal visibility
-  const [selectedEntryId, setSelectedEntryId] = useState<bigint | null>(null); // State for selected entry ID
-  const [isNewEntryModalOpen, setIsNewEntryModalOpen] = useState(false); // State for new entry modal
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [selectedEntryId, setSelectedEntryId] = useState<bigint | null>(null);
+  const [isNewEntryModalOpen, setIsNewEntryModalOpen] = useState(false);
+  const [filterTags, setFilterTags] = useState<string[]>([]);
+  const [addingTagsToEntry, setAddingTagsToEntry] = useState<bigint | null>(
+    null
+  );
+
+  // Fetch all available tags
+  const { data: availableTags = [] } = useQuery({
+    queryKey: ['tags'],
+    queryFn: fetchAllTags,
+  });
 
   const {
     data: entries,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['entries'],
-    queryFn: () => fetchEntries(0, 10),
-    retry: false,
-    refetchOnWindowFocus: false,
+    queryKey: ['entries', filterTags],
+    queryFn: () =>
+      filterTags.length > 0
+        ? fetchAllEntriesByTags(filterTags, 0, 10)
+        : fetchEntries(0, 10),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Tag filter handlers
+  const handleAddFilterTag = (tag: string) => {
+    setFilterTags((prev) => [...prev, tag]);
+  };
+
+  const handleRemoveFilterTag = (tag: string) => {
+    setFilterTags((prev) => prev.filter((t) => t !== tag));
+  };
 
   function handleSearch(value: string) {
     if (value.trim() === '') {
@@ -57,11 +84,77 @@ export default function EntriesPage() {
   }
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
+        <div className="container mx-auto p-6">
+          <div className="bg-white rounded-lg shadow-md p-6 mt-4">
+            <div className="flex justify-center items-center min-h-[200px]">
+              <p>Loading entries...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
+        <div className="container mx-auto p-6">
+          <div className="bg-white rounded-lg shadow-md p-6 mt-4">
+            <div className="flex justify-center items-center min-h-[200px]">
+              <p className="text-red-500">
+                Error loading entries. Please try again.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (entries && entries.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
+        <div className="container mx-auto p-6">
+          <div className="bg-white rounded-lg shadow-md p-6 mt-4">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-2xl font-bold text-[#003243]">
+                Journal Entries
+              </h1>
+              <button
+                onClick={() => setIsNewEntryModalOpen(true)}
+                className="bg-[#003243] text-white px-4 py-2 rounded-md hover:bg-[#002233]"
+              >
+                New Entry
+              </button>
+            </div>
+
+            {/* Filter by tags */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Filter by Tags
+              </label>
+              <TagSelector
+                selectedTags={filterTags}
+                availableTags={availableTags}
+                onTagAdd={handleAddFilterTag}
+                onTagRemove={handleRemoveFilterTag}
+                showAddNew={false}
+              />
+            </div>
+
+            <div className="flex justify-center items-center min-h-[200px]">
+              <p className="text-gray-500">
+                {filterTags.length > 0
+                  ? 'No entries found with the selected tags'
+                  : 'No entries yet. Create your first entry!'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   function handleEntryClick(entryId: string) {
@@ -151,6 +244,16 @@ export default function EntriesPage() {
     }
   }
 
+  // New functions for tag management
+  const handleAddTagToEntry = async (entryId: bigint, tag: string) => {
+    try {
+      await addTagsToEntry(entryId, [tag]);
+      queryClient.invalidateQueries({ queryKey: ['entries'] });
+    } catch (error) {
+      console.error('Failed to add tag:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
       <div className="container mx-auto p-6">
@@ -161,9 +264,23 @@ export default function EntriesPage() {
             </h1>
             <button onClick={() => setIsNewEntryModalOpen(true)}>
               New Entry
-            </button>{' '}
-            {/* Add New Entry Button */}
+            </button>
           </div>
+
+          {/* Filter by tags */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Filter by Tags
+            </label>
+            <TagSelector
+              selectedTags={filterTags}
+              availableTags={availableTags}
+              onTagAdd={handleAddFilterTag}
+              onTagRemove={handleRemoveFilterTag}
+              showAddNew={false}
+            />
+          </div>
+
           <input
             type="text"
             placeholder="Search"
@@ -180,16 +297,16 @@ export default function EntriesPage() {
           <ul className="space-y-4">
             {entries &&
               entries.length > 0 &&
-              (searchedEntries ?? entries)?.map((entry) => (
+              (searchedEntries ?? entries)?.map((entry: Entry) => (
                 <li
                   key={entry.id}
                   className="p-4 border rounded-lg shadow-sm relative hover:shadow-lg transition-shadow duration-200 hover:p-5 transform hover:-translate-y-1"
                 >
                   {/* Heart icon for favorites */}
                   <div
-                    className="absolute top-2 right-2 cursor-pointer p-1" // Added padding for easier clicking
+                    className="absolute top-2 right-2 cursor-pointer p-1"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent entry click
+                      e.stopPropagation();
                       handleFavoriteToggle(entry);
                     }}
                   >
@@ -220,63 +337,79 @@ export default function EntriesPage() {
                     )}
                   </div>
                   {/* Content clickable area */}
-                  <div
-                    onClick={() => handleEntryClick(entry.publicId)}
-                    className="cursor-pointer"
-                  >
-                    <h2 className="text-xl font-semibold">{entry.title}</h2>
-                    <p className="text-gray-600 mb-2">
-                      {stripMarkdownAndTruncate(entry.content, 200)}
-                    </p>
-                    <p className="text-sm text-gray-500 mb-2">
-                      {new Date(entry.journalDate).toLocaleDateString()}
-                    </p>
-                    {/* Updated Tag rendering section with remove functionality */}
-                    <ul className="mb-10">
-                      {entry.tags.map((tag, idx) => (
-                        <li
-                          key={idx}
-                          className="inline-block bg-[#003243] text-white rounded-full px-2 py-1 text-sm mr-2 mb-2 relative group"
-                        >
-                          <span>{tag}</span>
+                  <div className="cursor-pointer">
+                    <div onClick={() => handleEntryClick(entry.publicId)}>
+                      <h2 className="text-xl font-semibold">{entry.title}</h2>
+                      <p className="text-gray-600 mb-2">
+                        {stripMarkdownAndTruncate(entry.content, 200)}
+                      </p>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {new Date(entry.journalDate).toLocaleDateString()}
+                      </p>
+                    </div>
 
-                          {/* Remove tag button - visible only on hover */}
-                          <button
-                            className="absolute -right-1 -top-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => handleRemoveTag(e, entry.id, tag)}
-                            aria-label={`Remove tag ${tag}`}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.5}
-                              stroke="currentColor"
-                              className="w-3 h-3"
+                    {/* Tags section with add functionality */}
+                    <div className="mb-10" onClick={(e) => e.stopPropagation()}>
+                      {addingTagsToEntry === entry.id ? (
+                        <TagSelector
+                          selectedTags={entry.tags}
+                          availableTags={availableTags}
+                          onTagAdd={(tag) => handleAddTagToEntry(entry.id, tag)}
+                          onTagRemove={(tag) => {
+                            removeTagFromEntry(entry.id, tag).then(() => {
+                              queryClient.invalidateQueries({
+                                queryKey: ['entries'],
+                              });
+                            });
+                          }}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {entry.tags.map((tag: string, idx: number) => (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="bg-[#003243] text-white px-2 py-1 text-sm rounded-full flex items-center gap-1 group"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
+                              {tag}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveTag(e, entry.id, tag);
+                                }}
+                                className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
+                                aria-label={`Remove tag ${tag}`}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAddingTagsToEntry(entry.id);
+                            }}
+                            className="text-sm text-gray-500 hover:text-[#003243]"
+                          >
+                            + Add Tag
                           </button>
-                        </li>
-                      ))}
-                    </ul>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {/* Buttons container */}
                   <div className="absolute bottom-2 right-2 flex space-x-2">
                     <button
-                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm" // Share button style
+                      className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
                       onClick={(e) => handleShareClick(e, entry.id)}
                     >
                       Share
                     </button>
                     <button
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm" // Delete button style
+                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent entry click
+                        e.stopPropagation();
                         handleDelete(entry.id);
                       }}
                     >
@@ -288,13 +421,12 @@ export default function EntriesPage() {
           </ul>
         </div>
       </div>
-      {/* Render the share modal */}
+      {/* Modals */}
       <ShareEntryModal
         entryId={selectedEntryId}
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
       />
-      {/* Render the new entry modal */}
       <NewEntryModal
         isOpen={isNewEntryModalOpen}
         onClose={() => setIsNewEntryModalOpen(false)}
