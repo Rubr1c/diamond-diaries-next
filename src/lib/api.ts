@@ -370,7 +370,6 @@ export async function getAllMediaForEntry(
     return [];
   }
   const res = await api.get(`/entry/${entryId}/media`);
-  console.log(res.data);
   return res.data;
 }
 
@@ -380,13 +379,15 @@ export async function uploadMediaToEntry(
   mediaType: 'IMAGE' | 'VIDEO' | 'FILE',
   file: File
 ): Promise<string> {
-  console.log(localStorage.getItem('token'));
+  const token = localStorage.getItem('token');
   const formData = new FormData();
   formData.append('mediaType', mediaType);
   formData.append('file', file);
   const res = await api.post(`/entry/${entryId}/media/new`, formData, {
     headers: {
+      ...(api.defaults.headers.common as Record<string, string>),
       'Content-Type': 'multipart/form-data',
+      Authorization: token ? `Bearer ${token}` : undefined,
     },
   });
   return res.data;
