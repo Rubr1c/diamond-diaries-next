@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export function GoogleSignInButton() {
   const handleGoogleSignIn = () => {
-    const baseUrl = 'https://diamond-diaries.online:8080';
+    const baseUrl = 'https://diamond-diaries.online';
 
     window.location.href = `${baseUrl}/oauth2/authorization/google`;
   };
