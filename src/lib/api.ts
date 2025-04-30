@@ -167,8 +167,9 @@ export async function addTagsToEntry(entryId: bigint, tagNames: string[]) {
 }
 
 export async function removeTagFromEntry(entryId: bigint, tagName: string) {
-  const res = await api.delete(`/entry/${entryId}/tag/${tagName}`);
-
+  // Use encoded path parameter so tags including spaces work
+  const encoded = encodeURIComponent(tagName);
+  const res = await api.delete(`/entry/${entryId}/tag/${encoded}`);
   return res.data;
 }
 

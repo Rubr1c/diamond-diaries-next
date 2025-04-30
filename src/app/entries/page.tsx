@@ -1,7 +1,13 @@
 'use client';
 
 import { Entry } from '@/index/entry';
-import { fetchEntries, searchEntries, deleteEntry, editEntry, removeTagFromEntry } from '@/lib/api';
+import {
+  fetchEntries,
+  searchEntries,
+  deleteEntry,
+  editEntry,
+  removeTagFromEntry,
+} from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
@@ -116,9 +122,18 @@ export default function EntriesPage() {
     e.stopPropagation(); // Prevent entry click
     try {
       await removeTagFromEntry(entryId, tagName);
-      // Invalidate the queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['entries'] });
-      queryClient.invalidateQueries({ queryKey: [`entry-${entryId}`] });
+      // Update entries list cache for immediate UI update
+      queryClient.setQueryData<Entry[]>(['entries'], (old) =>
+        old?.map((e) =>
+          e.id === entryId
+            ? { ...e, tags: e.tags.filter((t) => t !== tagName) }
+            : e
+        )
+      );
+      // Update individual entry cache
+      queryClient.setQueryData<Entry>([`entry-${entryId}`], (old) =>
+        old ? { ...old, tags: old.tags.filter((t) => t !== tagName) } : old
+      );
 
       // Update any searched entries state if applicable
       if (searchedEntries) {
