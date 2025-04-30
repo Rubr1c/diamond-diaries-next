@@ -2,11 +2,16 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   images: {
-    // Add remotePatterns to further enforce security and improve handling of Google images
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'diamond-diaries-media.s3.amazonaws.com',
         port: '',
         pathname: '/**',
       },

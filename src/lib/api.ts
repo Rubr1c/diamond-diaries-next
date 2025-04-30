@@ -359,4 +359,25 @@ export async function getAllMediaForEntry(
   return res.data;
 }
 
+// Add function to upload media to an entry
+export async function uploadMediaToEntry(
+  entryId: bigint,
+  mediaType: 'IMAGE' | 'VIDEO' | 'FILE',
+  file: File
+): Promise<string> {
+  const formData = new FormData();
+  formData.append('mediaType', mediaType);
+  formData.append('file', file);
+  const res = await api.post(
+    `/entry/${entryId.toString()}/media/new`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+  return res.data;
+}
+
 export default api;

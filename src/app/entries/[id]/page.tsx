@@ -1,12 +1,18 @@
 'use client';
 
-import { fetchEntryByUuid, editEntry, getAllMediaForEntry } from '@/lib/api';
+import {
+  fetchEntryByUuid,
+  editEntry,
+  getAllMediaForEntry,
+  uploadMediaToEntry,
+} from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
+import Image from 'next/image';
 import { useUser } from '@/hooks/useUser';
 
 export default function EntryPage() {
@@ -15,6 +21,8 @@ export default function EntryPage() {
   const params = useParams();
   const queryClient = useQueryClient();
   const entryRef = useRef<HTMLDivElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const router = useRouter();
 
   const id = params.id as string;
@@ -25,14 +33,14 @@ export default function EntryPage() {
     refetchOnWindowFocus: false,
   });
 
-  const {data: media} = useQuery({
+  const { data: media } = useQuery({
     queryKey: [`media-${id}`],
     queryFn: () => getAllMediaForEntry(entry?.id),
     enabled: !!entry,
     retry: false,
     refetchOnWindowFocus: false,
     staleTime: 900000,
-  })
+  });
 
   const handleGeneratePdf = async () => {
     if (!entryRef.current) return;
@@ -99,7 +107,24 @@ export default function EntryPage() {
     queryClient.invalidateQueries({ queryKey: [`entry-${id}`] });
     queryClient.invalidateQueries({ queryKey: ['entries'] });
   }
-  
+
+  async function handleUploadMedia() {
+    if (!entry || !selectedFile) return;
+    // Infer mediaType from file MIME type
+    const mime = selectedFile.type;
+    const inferredType: 'IMAGE' | 'VIDEO' | 'FILE' = mime.startsWith('image/')
+      ? 'IMAGE'
+      : mime.startsWith('video/')
+      ? 'VIDEO'
+      : 'FILE';
+    try {
+      await uploadMediaToEntry(entry.id, inferredType, selectedFile);
+      setSelectedFile(null);
+      queryClient.invalidateQueries({ queryKey: [`media-${id}`] });
+    } catch (e) {
+      console.error('Upload failed', e);
+    }
+  }
 
   return (
     <div className="mt-20 flex flex-col items-center justify-center px-4">
@@ -160,17 +185,58 @@ export default function EntryPage() {
       >
         Export
       </button>
-      {
-        media && media?.length > 0 && media?.map((entryMedia) => {
 
-          if(entryMedia.type == "IMAGE") return <img src={entryMedia.presignedUrl} key={entryMedia.id} alt='image'/>
-          else if(entryMedia.type == "VIDEO") return (
-          <video width="320" height="240" controls key={entryMedia.id}>
-            <source src={entryMedia.presignedUrl} type="video/mp4"/>
-            Your browser does not support the video tag.
-          </video>)
-        })
-      }
+      {/* Upload media section */}
+      <div className="flex items-center space-x-2 mt-4">
+        <input
+          type="file"
+          accept="*/*"
+          onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+        />
+        <button
+          onClick={handleUploadMedia}
+          disabled={!selectedFile}
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Upload
+        </button>
+      </div>
+
+      {media &&
+        media.length > 0 &&
+        media.map((entryMedia) => {
+          if (entryMedia.type === 'IMAGE') {
+            return (
+              <Image
+                src={entryMedia.presignedUrl}
+                key={entryMedia.id}
+                alt="media image"
+                width={320}
+                height={240}
+                className="object-cover"
+              />
+            );
+          } else if (entryMedia.type === 'VIDEO') {
+            return (
+              <video width="320" height="240" controls key={entryMedia.id}>
+                <source src={entryMedia.presignedUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            );
+          } else if (entryMedia.type === 'FILE') {
+            return (
+              <a
+                href={entryMedia.presignedUrl}
+                key={entryMedia.id}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline"
+              >
+                Download File
+              </a>
+            );
+          }
+        })}
       <p className="text-gray-600 text-sm mt-2">{entry?.wordCount} words</p>
     </div>
   );
