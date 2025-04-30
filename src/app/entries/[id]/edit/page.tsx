@@ -19,6 +19,21 @@ function setCookie(name: string, value: string, days = 365) {
   )}; expires=${expires}; path=/`;
 }
 
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[.*?\]\(.*?\)/g, ' ')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    .replace(/[#>*_~`\-]/g, ' ')
+    .replace(/\n+/g, ' ')
+    .trim();
+}
+
+function countWords(text: string): number {
+  return text.split(/\s+/).filter((w) => w.length > 0).length;
+}
+
 export default function EntryEditPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: user } = useUser();
@@ -63,7 +78,13 @@ export default function EntryEditPage() {
     if (autosaveTimeout.current) clearTimeout(autosaveTimeout.current);
     autosaveTimeout.current = setTimeout(async () => {
       setIsSaving(true);
-      await editEntry(entry.id, { content: content.replace(/\n/g, '\\n') });
+      // compute and include word count (excluding markdown)
+      const plain = stripMarkdown(content);
+      const wc = countWords(plain);
+      await editEntry(entry.id, {
+        content: content.replace(/\n/g, '\\n'),
+        wordCount: wc,
+      });
       queryClient.invalidateQueries({ queryKey: [`entry-${id}`] });
       queryClient.invalidateQueries({ queryKey: ['entries'] });
       setIsSaving(false);
@@ -78,7 +99,13 @@ export default function EntryEditPage() {
     e.preventDefault();
     if (!entry) return;
     setIsSaving(true);
-    await editEntry(entry.id, { content: content.replace(/\n/g, '\\n') });
+    // compute and include word count (excluding markdown)
+    const plain = stripMarkdown(content);
+    const wc = countWords(plain);
+    await editEntry(entry.id, {
+      content: content.replace(/\n/g, '\\n'),
+      wordCount: wc,
+    });
     queryClient.invalidateQueries({ queryKey: [`entry-${id}`] });
     queryClient.invalidateQueries({ queryKey: ['entries'] });
     setIsSaving(false);
@@ -155,4 +182,3 @@ export default function EntryEditPage() {
     </div>
   );
 }
-
