@@ -17,8 +17,7 @@ import ShareEntryModal from '@/components/modals/ShareEntryModal'; // Import the
 import NewEntryModal from '@/components/modals/NewEntryModal'; // Import the new modal
 
 export default function EntriesPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data: user } = useUser();
+  const {} = useUser();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
@@ -130,12 +129,10 @@ export default function EntriesPage() {
             : e
         )
       );
-      // Update individual entry cache
       queryClient.setQueryData<Entry>([`entry-${entryId}`], (old) =>
         old ? { ...old, tags: old.tags.filter((t) => t !== tagName) } : old
       );
 
-      // Update any searched entries state if applicable
       if (searchedEntries) {
         setSearchedEntries(
           searchedEntries.map((entry) => {

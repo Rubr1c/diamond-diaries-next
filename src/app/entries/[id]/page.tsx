@@ -16,8 +16,7 @@ import Image from 'next/image';
 import { useUser } from '@/hooks/useUser';
 
 export default function EntryPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data: user } = useUser();
+  const {} = useUser();
   const params = useParams();
   const queryClient = useQueryClient();
   const entryRef = useRef<HTMLDivElement>(null);

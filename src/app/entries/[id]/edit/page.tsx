@@ -35,8 +35,7 @@ function countWords(text: string): number {
 }
 
 export default function EntryEditPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { data: user } = useUser();
+  const {} = useUser();
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
