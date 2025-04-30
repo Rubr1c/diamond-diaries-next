@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export function GoogleSignInButton() {
   const handleGoogleSignIn = () => {
-    const baseUrl = 'http://3.92.229.33:8080';
+    const baseUrl = 'https://3.92.229.33:8080';
 
     window.location.href = `${baseUrl}/oauth2/authorization/google`;
   };
