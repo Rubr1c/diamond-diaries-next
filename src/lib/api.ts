@@ -253,14 +253,14 @@ export async function editEntry(
   // Convert BigInts in the updates object to strings before sending
   const dataToSend = convertBigIntToString(updates);
   // Ensure the entryId in the path is also a string
-  const res = await api.put(`/entry/${entryId.toString()}/update`, dataToSend);
+  const res = await api.put(`/entry/${entryId}/update`, dataToSend);
   return res.data;
 }
 
 export async function addEntryToFolder(entryId: bigint, folderId: bigint) {
   // Convert BigInts to strings for path parameters
   const res = await api.post(
-    `/entry/${entryId.toString()}/add-to-folder/${folderId.toString()}`
+    `/entry/${entryId}/add-to-folder/${folderId}`
   );
   return res.data;
 }
@@ -268,7 +268,7 @@ export async function addEntryToFolder(entryId: bigint, folderId: bigint) {
 export async function removeEntryFromFolder(entryId: bigint) {
   // Convert BigInt to string for path parameter
   const res = await api.delete(
-    `/entry/${entryId.toString()}/remove-from-folder`
+    `/entry/${entryId}/remove-from-folder`
   );
   return res.data;
 }
@@ -345,8 +345,7 @@ export async function removeUserFromSharedEntry(id: string, userEmail: string) {
 }
 
 export async function deleteEntry(entryId: bigint) {
-  // Convert BigInt to string for path parameter
-  await api.delete(`/entry/${entryId.toString()}`);
+  await api.delete(`/entry/${entryId}`);
 }
 
 export async function getAllMediaForEntry(
@@ -370,7 +369,7 @@ export async function uploadMediaToEntry(
   formData.append('mediaType', mediaType);
   formData.append('file', file);
   const res = await api.post(
-    `/entry/${entryId.toString()}/media/new`,
+    `/entry/${entryId}/media/new`,
     formData,
     {
       headers: {
