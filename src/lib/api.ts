@@ -125,7 +125,7 @@ export async function fetchEntries(
       amount,
     },
   });
-
+  console.log(offset, amount);
   console.log(res.data);
 
   return res.data;

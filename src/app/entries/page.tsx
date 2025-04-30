@@ -11,9 +11,13 @@ import {
   addTagsToEntry,
   fetchAllEntriesByTags,
 } from '@/lib/api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { marked } from 'marked';
 import { useUser } from '@/hooks/useUser';
 import ShareEntryModal from '@/components/modals/ShareEntryModal';
@@ -22,12 +26,15 @@ import { TagSelector } from '@/components/custom/tag-selector';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 
+const PAGE_SIZE = 10;
+
 export default function EntriesPage() {
   const {} = useUser();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState<bigint | null>(null);
   const [isNewEntryModalOpen, setIsNewEntryModalOpen] = useState(false);
@@ -43,17 +50,45 @@ export default function EntriesPage() {
   });
 
   const {
-    data: entries,
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     isLoading,
     error,
-  } = useQuery({
+  } = useInfiniteQuery({
     queryKey: ['entries', filterTags],
-    queryFn: () =>
-      filterTags.length > 0
-        ? fetchAllEntriesByTags(filterTags, 0, 10)
-        : fetchEntries(0, 10),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryFn: async ({ pageParam = 0 }) => {
+      const result =
+        filterTags.length > 0
+          ? await fetchAllEntriesByTags(filterTags, pageParam, PAGE_SIZE)
+          : await fetchEntries(pageParam, PAGE_SIZE);
+      return {
+        entries: result,
+        nextPage: result.length === PAGE_SIZE ? pageParam + 1 : undefined,
+      };
+    },
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 0,
   });
+
+  // Intersection Observer setup
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   // Tag filter handlers
   const handleAddFilterTag = (tag: string) => {
@@ -113,7 +148,10 @@ export default function EntriesPage() {
     );
   }
 
-  if (entries && entries.length === 0) {
+  // Flatten all pages of entries
+  const entries = data?.pages.flatMap((page) => page.entries) ?? [];
+
+  if (entries.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
         <div className="container mx-auto p-6">
@@ -419,6 +457,23 @@ export default function EntriesPage() {
                 </li>
               ))}
           </ul>
+
+          {/* Load more indicator */}
+          <div
+            ref={loadMoreRef}
+            className="h-10 flex items-center justify-center mt-4"
+          >
+            {isFetchingNextPage ? (
+              <div className="text-gray-500 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-[#003243] border-t-transparent rounded-full animate-spin"></div>
+                Loading more...
+              </div>
+            ) : hasNextPage ? (
+              <p className="text-gray-500">Scroll for more entries</p>
+            ) : entries.length > 0 ? (
+              <p className="text-gray-500">No more entries to load</p>
+            ) : null}
+          </div>
         </div>
       </div>
       {/* Modals */}
