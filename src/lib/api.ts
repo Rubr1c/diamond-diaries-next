@@ -148,6 +148,19 @@ export async function fetchEntriesByDate(date: string): Promise<Entry[]> {
   return res.data;
 }
 
+export async function fetchEntriesByDateRange(
+  startDate: string,
+  endDate: string
+): Promise<Entry[]> {
+  const res = await api.get('/entry/time-range', {
+    params: {
+      startDate,
+      endDate,
+    },
+  });
+  return res.data;
+}
+
 export async function fetchAllEntriesByTags(
   tagNames: string[],
   offset: number,
