@@ -3,8 +3,23 @@
 import Image from 'next/image';
 import { useUser } from '@/hooks/useUser';
 import { useState, useEffect } from 'react';
-import { updateUser } from '@/lib/api';
+import { updateUser, initiatePasswordChange, changePassword } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { VerificationCodeModal } from '@/components/modals/VerificationCodeModal';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { resetPasswordSchema } from '@/schemas/auth-schemas';
 
 export default function Account() {
   const { data: user } = useUser();
@@ -19,8 +34,17 @@ export default function Account() {
 
   const [hasChanges, setHasChanges] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [passwordChangeError, setPasswordChangeError] = useState('');
 
-  // Initialize form with user data when available
+  const passwordForm = useForm<z.infer<typeof resetPasswordSchema>>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
   useEffect(() => {
     if (user) {
       setEditedUser({
@@ -100,6 +124,56 @@ export default function Account() {
       alert('Failed to update settings. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const onPasswordChangeSubmit = async (
+    data: z.infer<typeof resetPasswordSchema>
+  ) => {
+    if (!user?.email) {
+      setPasswordChangeError('User email not found. Please try again later.');
+      return;
+    }
+
+    setPasswordChangeError('');
+    try {
+      localStorage.setItem('newPassword', data.password);
+
+      await initiatePasswordChange(user.email);
+
+      setIsVerificationModalOpen(true);
+    } catch (err) {
+      console.error('Error initiating password change:', err);
+      setPasswordChangeError(
+        'Failed to send verification code. Please try again.'
+      );
+    }
+  };
+
+  const onVerifyCode = async (code: string) => {
+    if (!user?.email) {
+      setPasswordChangeError('User email not found. Please try again later.');
+      return;
+    }
+
+    try {
+      const newPassword = localStorage.getItem('newPassword');
+      if (!newPassword) {
+        setPasswordChangeError('Password data not found. Please try again.');
+        return;
+      }
+
+      await changePassword(user.email, code, newPassword);
+
+      localStorage.removeItem('newPassword');
+      passwordForm.reset();
+
+      alert('Password changed successfully!');
+    } catch (err) {
+      console.error('Error changing password:', err);
+      setPasswordChangeError('Failed to change password. Please try again.');
+    } finally {
+      setIsVerificationModalOpen(false);
     }
   };
 
@@ -185,7 +259,98 @@ export default function Account() {
             </button>
           </div>
         )}
+
+        {/* Password Change Section */}
+        <div className="mt-10 border-t pt-6">
+          <h2 className="text-xl font-semibold">Change Password</h2>
+
+          {passwordChangeError && (
+            <div className="mt-3 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {passwordChangeError}
+            </div>
+          )}
+
+          <Form {...passwordForm}>
+            <form
+              onSubmit={passwordForm.handleSubmit(onPasswordChangeSubmit)}
+              className="space-y-4 mt-4"
+              autoComplete="off"
+              id="new-password-form"
+            >
+              {/* Hidden fake fields to trick browser autofill */}
+              <input
+                type="text"
+                name="fakeusernameremembered"
+                style={{ display: 'none' }}
+              />
+              <input
+                type="password"
+                name="fakepasswordremembered"
+                style={{ display: 'none' }}
+              />
+
+              <FormField
+                control={passwordForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="••••••••"
+                        type="password"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck="false"
+                        data-form-type="other"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={passwordForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm New Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="••••••••"
+                        type="password"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck="false"
+                        data-form-type="other"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full bg-[#01C269] hover:bg-[#01C269]/90"
+              >
+                Change Password
+              </Button>
+            </form>
+          </Form>
+        </div>
       </div>
+
+      <VerificationCodeModal
+        isOpen={isVerificationModalOpen}
+        onClose={() => setIsVerificationModalOpen(false)}
+        onVerify={onVerifyCode}
+      />
     </div>
   );
 }

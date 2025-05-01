@@ -99,7 +99,7 @@ export async function resendVerificationCode(email: string) {
 
 export async function forgotPassword(email: string) {
   const response = await api.post('/auth/forgot-password', null, {
-    params: { email }
+    params: { email },
   });
   return response.data;
 }
@@ -112,7 +112,27 @@ export async function resetPassword(
   const response = await api.post('/auth/reset-password', {
     email,
     verificationCode,
-    newPassword
+    newPassword,
+  });
+  return response.data;
+}
+
+export async function initiatePasswordChange(email: string) {
+  const response = await api.post('/auth/forgot-password', null, {
+    params: { email },
+  });
+  return response.data;
+}
+
+export async function changePassword(
+  email: string,
+  verificationCode: string,
+  newPassword: string
+) {
+  const response = await api.post('/auth/reset-password', {
+    email,
+    verificationCode,
+    newPassword,
   });
   return response.data;
 }
