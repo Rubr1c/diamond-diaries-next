@@ -1,14 +1,12 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation'; // Import useRouter
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'; // Import useQueryClient, useMutation
+import {
+  useQuery,
+} from '@tanstack/react-query';
 import {
   fetchAllEntriesFromFolder,
   fetchAllTags,
-  deleteEntry,
-  editEntry,
-  removeTagFromEntry,
-  addTagsToEntry,
   getFolder,
 } from '@/lib/api';
 import { useUser } from '@/hooks/useUser';
@@ -22,12 +20,8 @@ export default function FolderPage() {
   const {} = useUser();
   const params = useParams();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const id = params.id as string;
 
-  const [addingTagsToEntry, setAddingTagsToEntry] = useState<bigint | null>(
-    null
-  );
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState<bigint | null>(null);
 
@@ -53,7 +47,6 @@ export default function FolderPage() {
   const { data: availableTags = [], isLoading: isLoadingTags } = useQuery<
     string[]
   >({
-    // Specify string[] type
     queryKey: ['tags'],
     queryFn: fetchAllTags,
   });
@@ -77,87 +70,11 @@ export default function FolderPage() {
       : plainText;
   }
 
-  const editMutation = useMutation({
-    mutationFn: ({
-      entryId,
-      data,
-    }: {
-      entryId: bigint;
-      data: Partial<Entry>;
-    }) => editEntry(entryId, data),
-    onSuccess: () => {
-      // Prefix unused variables
-      queryClient.invalidateQueries({ queryKey: [`folder-entries-${id}`] });
-    },
-    onError: (error) => {
-      console.error('Error updating entry:', error);
-    },
-  });
-
-  async function handleFavoriteToggle(entry: Entry) {
-    editMutation.mutate({
-      entryId: entry.id,
-      data: { isFavorite: !entry.isFavorite },
-    });
-  }
-
   function handleShareClick(e: React.MouseEvent, entryId: bigint) {
     e.stopPropagation();
     setSelectedEntryId(entryId);
     setIsShareModalOpen(true);
   }
-
-  const deleteMutation = useMutation({
-    mutationFn: (entryId: bigint) => deleteEntry(entryId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`folder-entries-${id}`] });
-    },
-    onError: (error) => {
-      console.error('Error deleting entry:', error);
-    },
-  });
-
-  function handleDelete(entryId: bigint) {
-    deleteMutation.mutate(entryId);
-  }
-
-  const removeTagMutation = useMutation({
-    mutationFn: ({ entryId, tagName }: { entryId: bigint; tagName: string }) =>
-      removeTagFromEntry(entryId, tagName),
-    onSuccess: () => {
-      // Prefix unused variables
-      queryClient.invalidateQueries({ queryKey: [`folder-entries-${id}`] });
-    },
-    onError: (error) => {
-      console.error('Error removing tag:', error);
-    },
-  });
-
-  async function handleRemoveTag(
-    e: React.MouseEvent,
-    entryId: bigint,
-    tagName: string
-  ) {
-    e.stopPropagation();
-    removeTagMutation.mutate({ entryId, tagName });
-  }
-
-  // Mutation hook for adding tags
-  const addTagMutation = useMutation({
-    mutationFn: ({ entryId, tag }: { entryId: bigint; tag: string }) =>
-      addTagsToEntry(entryId, [tag]),
-    onSuccess: () => {
-      // Prefix unused variables
-      queryClient.invalidateQueries({ queryKey: [`folder-entries-${id}`] });
-    },
-    onError: (error) => {
-      console.error('Failed to add tag:', error);
-    },
-  });
-
-  const handleAddTagToEntry = async (entryId: bigint, tag: string) => {
-    addTagMutation.mutate({ entryId, tag });
-  };
 
   if (isLoadingEntries || isLoadingTags) {
     return (
@@ -189,7 +106,6 @@ export default function FolderPage() {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
       <div className="container mx-auto p-6">
@@ -214,20 +130,9 @@ export default function FolderPage() {
                     entry={entry}
                     truncatedContent={truncatedContent}
                     availableTags={availableTags}
-                    addingTagsToEntry={addingTagsToEntry}
                     onEntryClick={handleEntryClick}
-                    onFavoriteToggle={handleFavoriteToggle}
                     onShareClick={handleShareClick}
-                    onDeleteClick={(e, id) => handleDelete(id)}
-                    onRemoveTag={handleRemoveTag}
-                    onAddTagToEntry={handleAddTagToEntry}
-                    onSetAddingTagsToEntry={setAddingTagsToEntry}
-                    onRemoveTagFromEntry={async (entryId, tagName) => {
-                      await removeTagFromEntry(entryId, tagName);
-                      queryClient.invalidateQueries({
-                        queryKey: [`folder-entries-${id}`],
-                      }); // Re-fetch on remove
-                    }}
+                    queryKeyToInvalidate={[`folder-entries-${id}`]}
                   />
                 );
               })}

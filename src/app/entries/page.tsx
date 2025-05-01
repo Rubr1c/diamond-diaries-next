@@ -4,19 +4,14 @@ import { Entry } from '@/index/entry';
 import {
   fetchEntries,
   searchEntries,
-  deleteEntry,
-  editEntry,
-  removeTagFromEntry,
   fetchAllTags,
-  addTagsToEntry,
   fetchAllEntriesByTags,
   fetchEntriesByDateRange,
 } from '@/lib/api';
 import {
   useQuery,
   useInfiniteQuery,
-  useQueryClient,
-  useMutation, // Add useMutation import
+  // useQueryClient, // Keep commented out or remove if not needed for direct invalidations
 } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
@@ -34,7 +29,6 @@ const PAGE_SIZE = 10;
 
 export default function EntriesPage() {
   const {} = useUser();
-  const queryClient = useQueryClient();
   const router = useRouter();
   const [searchedEntries, setSearchedEntries] = useState<Entry[] | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -47,9 +41,8 @@ export default function EntriesPage() {
     null,
     null,
   ]);
-  const [addingTagsToEntry, setAddingTagsToEntry] = useState<bigint | null>(
-    null
-  );
+  // Removed addingTagsToEntry state, now managed within EntryCard
+  // Mutations for favorite, delete, add tag, remove tag are now handled within EntryCard
 
   const { data: availableTags = [] } = useQuery({
     queryKey: ['tags'],
@@ -69,29 +62,7 @@ export default function EntriesPage() {
     retry: false,
   });
 
-  const removeTagMutation = useMutation({
-    mutationFn: ({ entryId, tagName }: { entryId: bigint; tagName: string }) =>
-      removeTagFromEntry(entryId, tagName),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['entries', filterTags] });
-      queryClient.invalidateQueries({ queryKey: ['tags'] }); // Invalidate tags as well, in case it affects available tags display
-     
-      setSearchedEntries(
-        (prevEntries) =>
-          prevEntries?.map((entry) =>
-            entry.id === variables.entryId
-              ? {
-                  ...entry,
-                  tags: entry.tags.filter((tag) => tag !== variables.tagName),
-                }
-              : entry
-          ) ?? null
-      );
-    },
-    onError: (error) => {
-      console.error('Failed to remove tag:', error);
-    },
-  });
+  // removeTagMutation removed, handled in EntryCard
 
   const {
     data,
@@ -162,15 +133,6 @@ export default function EntriesPage() {
     });
   }
 
-  function handleDelete(entryId: bigint) {
-    deleteEntry(entryId).then(() => {
-      fetchEntries(0, 10).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['entries'] });
-        setSearchedEntries(null);
-      });
-    });
-  }
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
@@ -223,45 +185,18 @@ export default function EntriesPage() {
       : plainText;
   }
 
-  async function handleFavoriteToggle(entry: Entry) {
-    editEntry(entry.id, { isFavorite: !entry.isFavorite }).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['entries'] });
-      queryClient.invalidateQueries({ queryKey: [`entry-${entry.publicId}`] });
-      setSearchedEntries(
-        (prevEntries) =>
-          prevEntries?.map((e) =>
-            e.id === entry.id ? { ...e, isFavorite: !e.isFavorite } : e
-          ) ?? null
-      );
-    });
-  }
+  // handleFavoriteToggle removed, handled in EntryCard
+  // handleDelete removed, handled in EntryCard
+  // handleRemoveTag removed, handled in EntryCard
+  // handleAddTagToEntry removed, handled in EntryCard
 
-  function handleShareClick(e: React.MouseEvent, entryId: bigint) {
+  // Function to handle opening the share modal (passed to EntryCard)
+  const handleShareClick = (e: React.MouseEvent, entryId: bigint) => {
     e.stopPropagation();
     setSelectedEntryId(entryId);
     setIsShareModalOpen(true);
-  }
-
-
-  async function handleRemoveTag(
-    e: React.MouseEvent,
-    entryId: bigint,
-    tagName: string
-  ) {
-    e.stopPropagation();
-    removeTagMutation.mutate({ entryId, tagName });
-  }
-
-  const handleAddTagToEntry = async (entryId: bigint, tag: string) => {
-    try {
-      await addTagsToEntry(entryId, [tag]);
-      queryClient.invalidateQueries({ queryKey: ['entries'] });
-    } catch (error) {
-      console.error('Failed to add tag:', error);
-    }
   };
 
-  // --- Start of UNIFIED main return block ---
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
       <div className="container mx-auto p-6">
@@ -377,23 +312,32 @@ export default function EntriesPage() {
                       entry.content,
                       200
                     );
+                    let queryKeyToInvalidate: string[];
+                    if (dateRange[0] && dateRange[1]) {
+                      // Use formatted dates to ensure string[] type
+                      queryKeyToInvalidate = [
+                        'entries',
+                        'date-range',
+                        format(dateRange[0], 'yyyy-MM-dd'),
+                        format(dateRange[1], 'yyyy-MM-dd'),
+                      ];
+                    } else if (searchedEntries) {
+                      // Assuming search invalidation uses a simple key
+                      queryKeyToInvalidate = ['entries', 'search']; // This needs to match the actual search query key if different
+                    } else {
+                      // Spread filterTags to create a flat string array
+                      queryKeyToInvalidate = ['entries', ...filterTags];
+                    }
+
                     return (
                       <EntryCard
                         key={entry.id}
                         entry={entry}
                         truncatedContent={truncatedContent}
                         availableTags={availableTags}
-                        addingTagsToEntry={addingTagsToEntry}
                         onEntryClick={handleEntryClick}
-                        onFavoriteToggle={handleFavoriteToggle}
-                        onShareClick={handleShareClick}
-                        onDeleteClick={(e, id) => handleDelete(id)}
-                        onRemoveTag={handleRemoveTag}
-                        onAddTagToEntry={handleAddTagToEntry}
-                        onSetAddingTagsToEntry={setAddingTagsToEntry}
-                        onRemoveTagFromEntry={async (entryId, tagName) =>
-                          removeTagMutation.mutate({ entryId, tagName })
-                        } 
+                        onShareClick={handleShareClick} // Pass the handler function
+                        queryKeyToInvalidate={queryKeyToInvalidate}
                       />
                     );
                   })}

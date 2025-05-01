@@ -310,21 +310,17 @@ export async function editEntry(
     isFavorite?: boolean;
   }
 ) {
-  // Convert BigInts in the updates object to strings before sending
   const dataToSend = convertBigIntToString(updates);
-  // Ensure the entryId in the path is also a string
   const res = await api.put(`/entry/${entryId}/update`, dataToSend);
   return res.data;
 }
 
 export async function addEntryToFolder(entryId: bigint, folderId: bigint) {
-  // Convert BigInts to strings for path parameters
   const res = await api.post(`/entry/${entryId}/add-to-folder/${folderId}`);
   return res.data;
 }
 
 export async function removeEntryFromFolder(entryId: bigint) {
-  // Convert BigInt to string for path parameter
   const res = await api.delete(`/entry/${entryId}/remove-from-folder`);
   return res.data;
 }
@@ -423,7 +419,7 @@ export async function uploadProfilePicture(
       Authorization: token ? `Bearer ${token}` : undefined,
     },
   });
-  return response.data; 
+  return response.data;
 }
 
 export async function getAllMediaForEntry(

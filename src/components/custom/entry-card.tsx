@@ -1,39 +1,98 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Entry } from '@/index/entry';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { TagSelector } from '@/components/custom/tag-selector';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  editEntry,
+  deleteEntry,
+  addTagsToEntry,
+  removeTagFromEntry,
+} from '@/lib/api';
 
 interface EntryCardProps {
   entry: Entry;
   truncatedContent: string;
   availableTags: string[];
-  addingTagsToEntry: bigint | null;
   onEntryClick: (publicId: string) => void;
-  onFavoriteToggle: (entry: Entry) => void;
-  onShareClick: (e: React.MouseEvent, entryId: bigint) => void;
-  onDeleteClick: (e: React.MouseEvent, entryId: bigint) => void;
-  onRemoveTag: (e: React.MouseEvent, entryId: bigint, tagName: string) => void;
-  onAddTagToEntry: (entryId: bigint, tag: string) => void;
-  onSetAddingTagsToEntry: (entryId: bigint | null) => void;
-  onRemoveTagFromEntry: (entryId: bigint, tagName: string) => Promise<void>; // Added for TagSelector
+  onShareClick: (e: React.MouseEvent, entryId: bigint) => void; // Keep for modal control
+  // Removed action callbacks: onFavoriteToggle, onDeleteClick, onRemoveTag, onAddTagToEntry, onRemoveTagFromEntry
+  queryKeyToInvalidate: string[]; // Key(s) to invalidate in the parent component
 }
 
 const EntryCard: React.FC<EntryCardProps> = ({
   entry,
   truncatedContent,
   availableTags,
-  addingTagsToEntry,
   onEntryClick,
-  onFavoriteToggle,
   onShareClick,
-  onDeleteClick,
-  onRemoveTag,
-  onAddTagToEntry,
-  onSetAddingTagsToEntry,
-  onRemoveTagFromEntry, // Added
+  queryKeyToInvalidate,
 }) => {
+  const [isAddingTags, setIsAddingTags] = useState(false);
+  const queryClient = useQueryClient();
+
+  // --- Mutations ---
+  const editMutation = useMutation({
+    mutationFn: (data: Partial<Entry>) => editEntry(entry.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
+      queryClient.invalidateQueries({ queryKey: [`entry-${entry.publicId}`] });
+    },
+    onError: (error) => console.error('Error updating entry:', error),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteEntry(entry.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
+    },
+    onError: (error) => console.error('Error deleting entry:', error),
+  });
+
+  const addTagMutation = useMutation({
+    mutationFn: (tag: string) => addTagsToEntry(entry.id, [tag]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
+      queryClient.invalidateQueries({ queryKey: ['tags'] }); // Invalidate available tags too
+      setIsAddingTags(false); // Close selector after adding
+    },
+    onError: (error) => console.error('Failed to add tag:', error),
+  });
+
+  const removeTagMutation = useMutation({
+    mutationFn: (tagName: string) => removeTagFromEntry(entry.id, tagName),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      // Keep selector open after removing
+    },
+    onError: (error) => console.error('Failed to remove tag:', error),
+  });
+  // --- End Mutations ---
+
   if (!entry) return null;
+
+  // --- Event Handlers ---
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    editMutation.mutate({ isFavorite: !entry.isFavorite });
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    deleteMutation.mutate();
+  };
+
+  const handleAddTag = (tag: string) => {
+    addTagMutation.mutate(tag);
+  };
+
+  const handleRemoveTag = (e: React.MouseEvent, tagName: string) => {
+    e.stopPropagation();
+    removeTagMutation.mutate(tagName);
+  };
+  // --- End Event Handlers ---
 
   return (
     <li
@@ -42,10 +101,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
     >
       <div
         className="absolute top-2 right-2 cursor-pointer p-1"
-        onClick={(e) => {
-          e.stopPropagation();
-          onFavoriteToggle(entry);
-        }}
+        onClick={handleFavoriteToggle}
       >
         {entry?.isFavorite ? (
           <svg
@@ -82,15 +138,15 @@ const EntryCard: React.FC<EntryCardProps> = ({
           </p>
         </div>
 
-        <div className="mb-10" onClick={(e) => e.stopPropagation()}>
-          {addingTagsToEntry === entry.id ? (
+        <div className="mb-10 relative" onClick={(e) => e.stopPropagation()}>
+          {isAddingTags ? (
             <TagSelector
               selectedTags={entry.tags}
               availableTags={availableTags}
-              onTagAdd={(tag) => onAddTagToEntry(entry.id, tag)}
-              onTagRemove={async (tag) => {
-                await onRemoveTagFromEntry(entry.id, tag);
-              }}
+              onTagAdd={handleAddTag}
+              onTagRemove={(tag) => removeTagMutation.mutate(tag)}
+              // Add a way to close the selector, e.g., an explicit close button or clicking outside
+              // For simplicity now, it closes on add, stays open on remove.
             />
           ) : (
             <div className="flex flex-wrap gap-2 items-center">
@@ -103,10 +159,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
                 >
                   {tag}
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRemoveTag(e, entry.id, tag);
-                    }}
+                    onClick={(e) => handleRemoveTag(e, tag)}
                     className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
                     aria-label={`Remove tag ${tag}`}
                   >
@@ -117,7 +170,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onSetAddingTagsToEntry(entry.id);
+                  setIsAddingTags(true);
                 }}
                 className="text-sm text-gray-500 hover:text-[#003243]"
               >
@@ -136,9 +189,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
         </button>
         <button
           className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
-          onClick={(e) => {
-            onDeleteClick(e, entry.id);
-          }}
+          onClick={handleDeleteClick}
         >
           Delete
         </button>
