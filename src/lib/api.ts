@@ -298,8 +298,8 @@ export async function newFolder(name: string) {
   return res.data;
 }
 
-export async function getFolder(id: bigint): Promise<Folder> {
-  const res = await api.get(`/folder/${id}`);
+export async function getFolder(id: string): Promise<Folder> {
+  const res = await api.get(`/folder/public/${id}`);
   return res.data;
 }
 

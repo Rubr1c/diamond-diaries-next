@@ -27,6 +27,7 @@ import { TagSelector } from '@/components/custom/tag-selector';
 import { JournalCalendar } from '@/components/custom/calendar';
 import { format } from 'date-fns';
 import EntryCard from '@/components/custom/entry-card';
+import Link from 'next/link';
 
 const PAGE_SIZE = 10;
 
@@ -49,13 +50,11 @@ export default function EntriesPage() {
     null
   );
 
-  // Fetch all available tags
   const { data: availableTags = [] } = useQuery({
     queryKey: ['tags'],
     queryFn: fetchAllTags,
   });
 
-  // Fetch entries by date range when dates are selected
   const { data: dateFilteredEntries } = useQuery({
     queryKey: ['entries', 'date-range', dateRange],
     queryFn: () => {
@@ -90,21 +89,18 @@ export default function EntriesPage() {
     },
     getNextPageParam: (lastPage) => lastPage.nextPage,
     initialPageParam: 0,
-    enabled: !dateRange[0] && !dateRange[1], // Disable when date range is selected
+    enabled: !dateRange[0] && !dateRange[1],
   });
 
-  // Handle date range selection
   const handleDateRangeSelect = (startDate: Date, endDate: Date) => {
     setDateRange([startDate, endDate]);
-    setSearchedEntries(null); // Clear search results when date range is selected
+    setSearchedEntries(null);
   };
 
-  // Clear date range filter
   const clearDateFilter = () => {
     setDateRange([null, null]);
   };
 
-  // Intersection Observer setup
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -271,7 +267,6 @@ export default function EntriesPage() {
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
       <div className="container mx-auto p-6">
         <div className="bg-white rounded-lg shadow-md p-6 mt-4">
-          {/* Header and New Entry Button (Always Rendered) */}
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-[#003243]">
               Journal Entries
@@ -283,10 +278,8 @@ export default function EntriesPage() {
               New Entry
             </button>
           </div>
-
-          {/* Filters and Search (Always Rendered) */}
+          <Link href="folders">Folders</Link>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Filter by tags */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Filter by Tags
@@ -412,7 +405,6 @@ export default function EntriesPage() {
             }
           })()}
 
-          {/* Load more indicator (Always Rendered, logic inside handles visibility) */}
           {!dateRange[0] && !dateRange[1] && !searchedEntries && (
             <div
               ref={loadMoreRef}
@@ -431,10 +423,7 @@ export default function EntriesPage() {
             </div>
           )}
         </div>{' '}
-        {/* End of white card */}
       </div>{' '}
-      {/* End of container */}
-      {/* Modals (Always Rendered) */}
       <ShareEntryModal
         entryId={selectedEntryId}
         isOpen={isShareModalOpen}

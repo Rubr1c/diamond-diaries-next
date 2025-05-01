@@ -9,6 +9,7 @@ import {
   editEntry,
   removeTagFromEntry,
   addTagsToEntry,
+  getFolder,
 } from '@/lib/api';
 import { useUser } from '@/hooks/useUser';
 import { useState } from 'react';
@@ -37,6 +38,14 @@ export default function FolderPage() {
   } = useQuery<Entry[]>({
     queryKey: [`folder-entries-${id}`],
     queryFn: () => fetchAllEntriesFromFolder(id),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: folder } = useQuery({
+    queryKey: [`folder-${id}`],
+    queryFn: () => getFolder(id),
+    enabled: !!id,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -180,14 +189,13 @@ export default function FolderPage() {
     );
   }
 
-  const folderName = `Folder ${id}`;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
       <div className="container mx-auto p-6">
         <div className="bg-white rounded-lg shadow-md p-6 mt-4">
           <h1 className="text-2xl font-bold text-[#003243] mb-4">
-            {folderName}
+            {folder?.name}
           </h1>
           {entries?.length === 0 ? (
             <div className="flex justify-center items-center min-h-[200px]">

@@ -53,6 +53,12 @@ export default function Navbar({ user }: NavbarProps) {
             >
               Entries
             </Link>
+            <Link
+              href="/entries"
+              className="py-2 px-3 text-[#1E4959] hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Folders
+            </Link>
 
             <div className="relative">
               <CalendarIcon className="h-5 w-5 text-[#1E4959]" />
@@ -129,6 +135,13 @@ export default function Navbar({ user }: NavbarProps) {
               onClick={() => setMobileMenuOpen(false)}
             >
               Entries
+            </Link>
+            <Link
+              href="/folders"
+              className="py-2 px-3 text-[#1E4959] hover:bg-gray-100 rounded-md transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Folders
             </Link>
           </div>
         </div>
