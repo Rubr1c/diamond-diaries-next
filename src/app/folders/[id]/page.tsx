@@ -76,7 +76,8 @@ export default function FolderPage() {
       entryId: bigint;
       data: Partial<Entry>;
     }) => editEntry(entryId, data),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
+      // Prefix unused variables
       queryClient.invalidateQueries({ queryKey: [`folder-entries-${id}`] });
     },
     onError: (error) => {
@@ -114,7 +115,8 @@ export default function FolderPage() {
   const removeTagMutation = useMutation({
     mutationFn: ({ entryId, tagName }: { entryId: bigint; tagName: string }) =>
       removeTagFromEntry(entryId, tagName),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
+      // Prefix unused variables
       queryClient.invalidateQueries({ queryKey: [`folder-entries-${id}`] });
     },
     onError: (error) => {
@@ -135,7 +137,8 @@ export default function FolderPage() {
   const addTagMutation = useMutation({
     mutationFn: ({ entryId, tag }: { entryId: bigint; tag: string }) =>
       addTagsToEntry(entryId, [tag]),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
+      // Prefix unused variables
       queryClient.invalidateQueries({ queryKey: [`folder-entries-${id}`] });
     },
     onError: (error) => {
