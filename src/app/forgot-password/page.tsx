@@ -19,31 +19,8 @@ import {
 import { forgotPassword, resetPassword } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
+import { forgotPasswordSchema, resetPasswordSchema } from '@/schemas/auth-schemas';
 
-// Create schemas for the form validation
-const forgotPasswordSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address' }),
-});
-
-const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(7, { message: 'Password must be at least 7 characters' })
-    .regex(/[A-Z]/, {
-      message: 'Password must contain at least one uppercase letter',
-    })
-    .regex(/[a-z]/, {
-      message: 'Password must contain at least one lowercase letter',
-    })
-    .regex(/[0-9]/, { message: 'Password must contain at least one number' })
-    .regex(/[^A-Za-z0-9]/, {
-      message: 'Password must contain at least one special character',
-    }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -52,7 +29,6 @@ export default function ForgotPasswordPage() {
   const [step, setStep] = useState<'email' | 'reset'>('email');
   const [error, setError] = useState('');
   
-  // Form for email submission
   const emailForm = useForm<z.infer<typeof forgotPasswordSchema>>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -60,7 +36,6 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  // Form for password reset
   const passwordForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
@@ -69,7 +44,6 @@ export default function ForgotPasswordPage() {
     },
   });
 
-  // Handle email form submission
   const onEmailSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
     try {
       setError('');
@@ -82,15 +56,12 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  // Handle verification code submission
   const onVerifyCode = async (code: string) => {
     setStep('reset');
     setIsVerificationModalOpen(false);
-    // Store verification code for later use during password reset
     localStorage.setItem('resetCode', code);
   };
 
-  // Handle password reset form submission
   const onPasswordSubmit = async (data: z.infer<typeof resetPasswordSchema>) => {
     try {
       setError('');
@@ -103,10 +74,8 @@ export default function ForgotPasswordPage() {
 
       await resetPassword(email, verificationCode, data.password);
       
-      // Clean up
       localStorage.removeItem('resetCode');
       
-      // Redirect to login page after successful password reset
       router.push('/login');
     } catch (err) {
       console.error('Error resetting password:', err);
