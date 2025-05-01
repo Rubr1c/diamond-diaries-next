@@ -54,7 +54,7 @@ export default function Navbar({ user }: NavbarProps) {
               Entries
             </Link>
             <Link
-              href="/entries"
+              href="/folders"
               className="py-2 px-3 text-[#1E4959] hover:bg-gray-100 rounded-md transition-colors"
             >
               Folders
