@@ -57,11 +57,27 @@ export async function logout() {
 
 export async function getUser(): Promise<User> {
   try {
+    console.log(
+      'Attempting to fetch user data with token:',
+      localStorage.getItem('token')
+    );
     const response = await api.get('/user/me');
+    console.log('User data fetched successfully:', response.data);
     return response.data;
   } catch (error) {
-    localStorage.removeItem('token');
-    console.error('Error fetching user data:', error);
+    console.error('Error details when fetching user data:', error);
+
+    // Only remove token for authentication errors (401/403), not for other issues
+    if (
+      axios.isAxiosError(error) &&
+      (error.response?.status === 401 || error.response?.status === 403)
+    ) {
+      console.warn('Authentication error - removing token');
+      localStorage.removeItem('token');
+    } else {
+      console.error('Non-authentication error when fetching user data');
+    }
+
     throw error;
   }
 }
@@ -386,6 +402,28 @@ export async function removeUserFromSharedEntry(id: string, userEmail: string) {
 
 export async function deleteEntry(entryId: bigint) {
   await api.delete(`/entry/${entryId}`);
+}
+
+export async function deleteProfilePicture() {
+  const response = await api.delete('/user/profile-picture');
+  return response.data;
+}
+
+export async function uploadProfilePicture(
+  profilePicture: File
+): Promise<string> {
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('profilePicture', profilePicture);
+
+  const response = await api.post('/user/profile-picture/upload', formData, {
+    headers: {
+      ...(api.defaults.headers.common as Record<string, string>),
+      'Content-Type': 'multipart/form-data',
+      Authorization: token ? `Bearer ${token}` : undefined,
+    },
+  });
+  return response.data; 
 }
 
 export async function getAllMediaForEntry(
