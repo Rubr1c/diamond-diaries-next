@@ -14,8 +14,9 @@ import {
 } from '@/lib/api';
 import {
   useQuery,
-  useQueryClient,
   useInfiniteQuery,
+  useQueryClient,
+  useMutation, // Add useMutation import
 } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
@@ -66,6 +67,30 @@ export default function EntriesPage() {
     },
     enabled: !!dateRange[0] && !!dateRange[1],
     retry: false,
+  });
+
+  const removeTagMutation = useMutation({
+    mutationFn: ({ entryId, tagName }: { entryId: bigint; tagName: string }) =>
+      removeTagFromEntry(entryId, tagName),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['entries', filterTags] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] }); // Invalidate tags as well, in case it affects available tags display
+     
+      setSearchedEntries(
+        (prevEntries) =>
+          prevEntries?.map((entry) =>
+            entry.id === variables.entryId
+              ? {
+                  ...entry,
+                  tags: entry.tags.filter((tag) => tag !== variables.tagName),
+                }
+              : entry
+          ) ?? null
+      );
+    },
+    onError: (error) => {
+      console.error('Failed to remove tag:', error);
+    },
   });
 
   const {
@@ -217,40 +242,14 @@ export default function EntriesPage() {
     setIsShareModalOpen(true);
   }
 
+
   async function handleRemoveTag(
     e: React.MouseEvent,
     entryId: bigint,
     tagName: string
   ) {
     e.stopPropagation();
-    try {
-      await removeTagFromEntry(entryId, tagName);
-      queryClient.setQueryData<Entry[]>(['entries'], (old) =>
-        old?.map((e) =>
-          e.id === entryId
-            ? { ...e, tags: e.tags.filter((t) => t !== tagName) }
-            : e
-        )
-      );
-      queryClient.setQueryData<Entry>([`entry-${entryId}`], (old) =>
-        old ? { ...old, tags: old.tags.filter((t) => t !== tagName) } : old
-      );
-      if (searchedEntries) {
-        setSearchedEntries(
-          searchedEntries.map((entry) => {
-            if (entry.id === entryId) {
-              return {
-                ...entry,
-                tags: entry.tags.filter((tag) => tag !== tagName),
-              };
-            }
-            return entry;
-          })
-        );
-      }
-    } catch (error) {
-      console.error('Failed to remove tag:', error);
-    }
+    removeTagMutation.mutate({ entryId, tagName });
   }
 
   const handleAddTagToEntry = async (entryId: bigint, tag: string) => {
@@ -334,9 +333,7 @@ export default function EntriesPage() {
             }}
           />
 
-          {/* Conditional Rendering: Empty State OR Entries List */}
           {(() => {
-            // Determine which set of entries to display based on filters/search
             const displayData =
               searchedEntries ?? dateFilteredEntries ?? entries;
             const hasInitialLoadData = entries.length > 0;
@@ -349,7 +346,6 @@ export default function EntriesPage() {
               displayData.length === 0;
 
             if (shouldShowEmptyState) {
-              // Initial empty state (no entries at all)
               return (
                 <div className="flex justify-center items-center min-h-[200px]">
                   <p className="text-gray-500">
@@ -373,7 +369,6 @@ export default function EntriesPage() {
                 </div>
               );
             } else {
-              // Display the list of entries using EntryCard
               return (
                 <ul className="space-y-4">
                   {displayData.map((entry: Entry) => {
@@ -392,11 +387,13 @@ export default function EntriesPage() {
                         onEntryClick={handleEntryClick}
                         onFavoriteToggle={handleFavoriteToggle}
                         onShareClick={handleShareClick}
-                        onDeleteClick={(e, id) => handleDelete(id)} // Adjust delete handler call
+                        onDeleteClick={(e, id) => handleDelete(id)}
                         onRemoveTag={handleRemoveTag}
                         onAddTagToEntry={handleAddTagToEntry}
                         onSetAddingTagsToEntry={setAddingTagsToEntry}
-                        onRemoveTagFromEntry={removeTagFromEntry} // Pass the function directly
+                        onRemoveTagFromEntry={async (entryId, tagName) =>
+                          removeTagMutation.mutate({ entryId, tagName })
+                        } 
                       />
                     );
                   })}
