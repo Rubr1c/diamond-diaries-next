@@ -282,9 +282,9 @@ export async function removeEntryFromFolder(entryId: bigint) {
 }
 
 export async function fetchAllEntriesFromFolder(
-  folderId: bigint
+  folderId: string
 ): Promise<Entry[]> {
-  const res = await api.get(`/entry/folder/${folderId}`);
+  const res = await api.get(`/entry/folder/public/${folderId}`);
   return res.data;
 }
 
