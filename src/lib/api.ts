@@ -66,6 +66,16 @@ export async function getUser(): Promise<User> {
   }
 }
 
+export async function updateUser(data: {
+  username?: string;
+  enabled2fa?: boolean;
+  aiAllowTitleAccess?: boolean;
+  aiAllowContentAccess?: boolean;
+}) {
+  const response = await api.put('/user/update/settings', data);
+  return response.data;
+}
+
 export async function verifyEmail(email: string, verificationCode: string) {
   const response = await api.post('/auth/verify', { email, verificationCode });
   return response.data;
