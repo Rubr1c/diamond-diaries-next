@@ -78,7 +78,7 @@ export function VerificationCodeModal({
               render={({ field }) => (
                 <FormItem className="flex flex-col items-center mt-5">
                   <FormControl>
-                    <InputOTP maxLength={6} {...field}>
+                    <InputOTP maxLength={6} {...field} autoComplete="off">
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
                         <InputOTPSlot index={1} />
