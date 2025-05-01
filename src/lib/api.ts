@@ -209,10 +209,8 @@ export async function searchEntries(query: string): Promise<Entry[]> {
   return res.data;
 }
 
-// Helper function to convert BigInts in an object to strings
 function convertBigIntToString(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') {
-    // Handle primitives (including bigint itself if passed directly)
     if (typeof obj === 'bigint') {
       return obj.toString();
     }
@@ -220,23 +218,19 @@ function convertBigIntToString(obj: unknown): unknown {
   }
 
   if (Array.isArray(obj)) {
-    // If it's an array, map over its elements recursively
     return obj.map(convertBigIntToString);
   }
 
-  // If it's a non-null object (and not an array)
-  const newObj: { [key: string]: unknown } = {}; // Use unknown for values
-  // Assert obj as indexable Record<string, unknown> for safe property access
+  const newObj: { [key: string]: unknown } = {};
   for (const key in obj as Record<string, unknown>) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const value = (obj as Record<string, unknown>)[key]; // Access value safely
+      const value = (obj as Record<string, unknown>)[key];
       if (typeof value === 'bigint') {
         newObj[key] = value.toString();
       } else if (typeof value === 'object') {
-        // Recurse for nested objects/arrays
         newObj[key] = convertBigIntToString(value);
       } else {
-        newObj[key] = value; // Keep other primitives as they are
+        newObj[key] = value;
       }
     }
   }
@@ -251,7 +245,6 @@ export async function newEntry(values: {
   wordCount: number;
   isFavorite: boolean;
 }) {
-  // Convert BigInt to string before sending
   const dataToSend = convertBigIntToString(values);
   const res = await api.post('/entry/new', dataToSend);
 
@@ -373,7 +366,6 @@ export async function getAllMediaForEntry(
   return res.data;
 }
 
-// Add function to upload media to an entry
 export async function uploadMediaToEntry(
   entryId: bigint,
   mediaType: 'IMAGE' | 'VIDEO' | 'FILE',

@@ -18,7 +18,6 @@ export default function Navbar({ user }: NavbarProps) {
     <>
       <nav className="bg-white border-b border-gray-200 px-4 py-2.5 fixed left-0 right-0 top-0 z-50">
         <div className="flex flex-wrap justify-between items-center">
-          {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image
@@ -34,7 +33,6 @@ export default function Navbar({ user }: NavbarProps) {
             </Link>
           </div>
 
-          {/* Mobile menu button */}
           <div className="flex items-center md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -48,7 +46,6 @@ export default function Navbar({ user }: NavbarProps) {
             </button>
           </div>
 
-          {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-4 ml-auto">
             <Link
               href="/entries"
@@ -57,7 +54,6 @@ export default function Navbar({ user }: NavbarProps) {
               Entries
             </Link>
 
-            {/* Streak icon */}
             <div className="relative">
               <CalendarIcon className="h-5 w-5 text-[#1E4959]" />
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#003243] rounded-full flex items-center justify-center">
@@ -65,7 +61,6 @@ export default function Navbar({ user }: NavbarProps) {
               </div>
             </div>
 
-            {/* Profile picture */}
             <div className="relative">
               <button
                 onClick={() => setSidebarOpen(true)}
@@ -91,11 +86,9 @@ export default function Navbar({ user }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-md z-50 py-4 px-4">
           <div className="flex flex-col space-y-4">
-            {/* Mobile user profile section */}
             <div className="flex items-center space-x-3 pb-3 border-b border-gray-200">
               <button
                 onClick={() => {
@@ -130,7 +123,6 @@ export default function Navbar({ user }: NavbarProps) {
               </div>
             </div>
 
-            {/* Mobile menu links */}
             <Link
               href="/entries"
               className="py-2 px-3 text-[#1E4959] hover:bg-gray-100 rounded-md transition-colors"
@@ -142,7 +134,6 @@ export default function Navbar({ user }: NavbarProps) {
         </div>
       )}
 
-      {/* User sidebar */}
       <UserSidebar
         user={user}
         isOpen={sidebarOpen}

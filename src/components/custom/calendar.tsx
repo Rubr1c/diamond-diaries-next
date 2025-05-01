@@ -55,7 +55,6 @@ export function JournalCalendar({
     }
   };
 
-  // Custom tile content to show indicators for dates with entries
   const tileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month' && hasEntry(date)) {
       return (
@@ -65,7 +64,6 @@ export function JournalCalendar({
     return null;
   };
 
-  // Custom tile className to style the active date
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (
       view === 'month' &&
@@ -88,7 +86,6 @@ export function JournalCalendar({
         tileClassName={tileClassName}
         className="border-0 w-full"
         selectRange={selectRange}
-        // Custom styling to match the app's design
         nextLabel="›"
         next2Label="»"
         prevLabel="‹"

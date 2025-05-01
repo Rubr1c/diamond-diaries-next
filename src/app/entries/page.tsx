@@ -268,12 +268,10 @@ export default function EntriesPage() {
     }
   };
 
-  // --- Start of UNIFIED main return block ---
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
       <div className="container mx-auto p-6">
         <div className="bg-white rounded-lg shadow-md p-6 mt-4">
-          {/* Header and New Entry Button (Always Rendered) */}
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-[#003243]">
               Journal Entries
@@ -289,9 +287,7 @@ export default function EntriesPage() {
             View Folders
           </Link>
 
-          {/* Filters and Search (Always Rendered) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            {/* Filter by tags */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Filter by Tags
@@ -304,7 +300,6 @@ export default function EntriesPage() {
                 showAddNew={false}
               />
             </div>
-            {/* Filter by date range */}
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="block text-sm font-medium text-gray-700">
@@ -331,7 +326,6 @@ export default function EntriesPage() {
               />
             </div>
           </div>
-          {/* Search input */}
           <input
             type="text"
             placeholder="Search"
@@ -346,9 +340,7 @@ export default function EntriesPage() {
             }}
           />
 
-          {/* Conditional Rendering: Empty State OR Entries List */}
           {(() => {
-            // Determine which set of entries to display based on filters/search
             const displayData = searchedEntries ?? dateFilteredEntries ?? entries;
             const hasInitialLoadData = entries.length > 0;
             const hasFilterResults = searchedEntries !== null || dateFilteredEntries !== null;
@@ -356,7 +348,6 @@ export default function EntriesPage() {
             const shouldShowNoResultsMessage = (hasInitialLoadData || hasFilterResults) && displayData.length === 0;
 
             if (shouldShowEmptyState) {
-              // Initial empty state (no entries at all)
               return (
                 <div className="flex justify-center items-center min-h-[200px]">
                   <p className="text-gray-500">
@@ -365,7 +356,6 @@ export default function EntriesPage() {
                 </div>
               );
             } else if (shouldShowNoResultsMessage) {
-              // Empty state after filtering/searching
               return (
                 <div className="flex justify-center items-center min-h-[200px]">
                   <p className="text-gray-500">
@@ -380,7 +370,6 @@ export default function EntriesPage() {
                 </div>
               );
             } else {
-              // Display the list of entries
               return (
                 <ul className="space-y-4">
                   {displayData.map((entry: Entry) => {
@@ -390,7 +379,6 @@ export default function EntriesPage() {
                         key={entry.id}
                         className="p-4 border rounded-lg shadow-sm relative hover:shadow-lg transition-shadow duration-200 hover:p-5 transform hover:-translate-y-1"
                       >
-                        {/* Heart icon for favorites */}
                         <div
                           className="absolute top-2 right-2 cursor-pointer p-1"
                           onClick={(e) => {
@@ -424,7 +412,6 @@ export default function EntriesPage() {
                             </svg>
                           )}
                         </div>
-                        {/* Content clickable area */}
                         <div className="cursor-pointer">
                           <div onClick={() => handleEntryClick(entry.publicId)}>
                             <h2 className="text-xl font-semibold">{entry.title}</h2>
@@ -436,7 +423,6 @@ export default function EntriesPage() {
                             </p>
                           </div>
 
-                          {/* Tags section with add functionality */}
                           <div
                             className="mb-10"
                             onClick={(e) => e.stopPropagation()}
@@ -535,10 +521,9 @@ export default function EntriesPage() {
               ) : null}
             </div>
           )}
-        </div> {/* End of white card */}
-      </div> {/* End of container */}
+        </div>
+      </div> 
 
-      {/* Modals (Always Rendered) */}
       <ShareEntryModal
         entryId={selectedEntryId}
         isOpen={isShareModalOpen}
@@ -548,6 +533,6 @@ export default function EntriesPage() {
         isOpen={isNewEntryModalOpen}
         onClose={() => setIsNewEntryModalOpen(false)}
       />
-    </div> // End of main page div
+    </div>
   );
 }

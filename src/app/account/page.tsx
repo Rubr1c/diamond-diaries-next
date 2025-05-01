@@ -19,7 +19,6 @@ export default function Account() {
                         user?.enabled2fa ? 'bg-green-500 text-white' : 'bg-gray-300 text-black'
                     }`}
                     onClick={() => {
-                        // Add logic to toggle 2FA here
                         console.log('Toggle 2FA clicked');
                     }}
                 >
@@ -33,7 +32,6 @@ export default function Account() {
                         user?.aiAllowTitleAccess ? 'bg-green-500 text-white' : 'bg-gray-300 text-black'
                     }`}
                     onClick={() => {
-                        // Add logic to toggle AI Title Access here
                         console.log('Toggle AI Title Access clicked');
                     }}
                 >
@@ -47,7 +45,6 @@ export default function Account() {
                         user?.aiAllowContentAccess ? 'bg-green-500 text-white' : 'bg-gray-300 text-black'
                     }`}
                     onClick={() => {
-                        // Add logic to toggle AI Content Access here
                         console.log('Toggle AI Content Access clicked');
                     }}
                 >

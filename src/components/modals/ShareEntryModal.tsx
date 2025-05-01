@@ -23,22 +23,19 @@ const ShareEntryModal: React.FC<ShareEntryModalProps> = ({
       allowAnyone: boolean;
     }) => createSharedEntry(data.entryId, data.allowedUsers, data.allowAnyone),
     onSuccess: (data) => {
-      // Handle success, e.g., show a success message, copy link to clipboard
       console.log('Shared entry created:', data);
       alert(
         `Shareable link created: ${window.location.origin}/entries/shared/${data}`
-      ); // Adjust URL as needed
-      onClose(); // Close the modal on success
+      );
+      onClose();
     },
     onError: (error) => {
-      // Handle error
       console.error('Error sharing entry:', error);
       alert('Failed to share entry.');
     },
   });
 
   useEffect(() => {
-    // Reset state when modal opens or entryId changes
     if (isOpen) {
       setEmails('');
       setAllowAnyone(false);

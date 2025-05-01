@@ -54,11 +54,10 @@ export default function EntryEditPage() {
 
   useEffect(() => {
     if (entry && !content) {
-      setContent(entry.content.replace(/\\n/g, '\n')); // Replace any escaped newlines with actual newlines
+      setContent(entry.content.replace(/\\n/g, '\n'));
     }
   }, [entry, content]);
 
-  // Load autosave state from cookie on mount
   useEffect(() => {
     const cookieValue = getCookie('entry-autosave');
     if (cookieValue === 'true') {
@@ -66,18 +65,16 @@ export default function EntryEditPage() {
     } else if (cookieValue === 'false') {
       setAutosave(false);
     } else {
-      setAutosave(false); // default to false if not set
+      setAutosave(false);
     }
   }, []);
 
-  // Autosave effect
   useEffect(() => {
     if (!autosave) return;
     if (!entry) return;
     if (autosaveTimeout.current) clearTimeout(autosaveTimeout.current);
     autosaveTimeout.current = setTimeout(async () => {
       setIsSaving(true);
-      // compute and include word count (excluding markdown)
       const plain = stripMarkdown(content);
       const wc = countWords(plain);
       await editEntry(entry.id, {
@@ -98,7 +95,6 @@ export default function EntryEditPage() {
     e.preventDefault();
     if (!entry) return;
     setIsSaving(true);
-    // compute and include word count (excluding markdown)
     const plain = stripMarkdown(content);
     const wc = countWords(plain);
     await editEntry(entry.id, {
