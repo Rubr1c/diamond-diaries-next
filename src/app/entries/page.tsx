@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { JournalCalendar } from '@/components/custom/calendar';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 const PAGE_SIZE = 10;
 
@@ -284,6 +285,9 @@ export default function EntriesPage() {
               New Entry
             </button>
           </div>
+          <Link href="/folders" className="text-[#003243] hover:text-[#002233] mb-4">
+            View Folders
+          </Link>
 
           {/* Filters and Search (Always Rendered) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

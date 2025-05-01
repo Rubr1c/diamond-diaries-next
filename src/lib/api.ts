@@ -301,7 +301,7 @@ export async function generateAiPrompt() {
 }
 
 export async function newFolder(name: string) {
-  const res = await api.post('/folder/new', { name });
+  const res = await api.post(`/folder/new/${name}`);
   return res.data;
 }
 
