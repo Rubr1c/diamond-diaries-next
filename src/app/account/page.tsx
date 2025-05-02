@@ -177,7 +177,6 @@ export default function Account() {
       setPasswordChangeError(
         'Failed to send verification code. Please try again.'
       );
-      
     }
   };
 

@@ -124,7 +124,7 @@ export default function Home() {
         Welcome back, {user?.username || 'User'}!
       </h1>
 
-      <Card className="mb-6 bg-white shadow-sm border border-gray-200 rounded-lg">
+      <Card className="mb-6 bg-white shadow-sm border border-gray-200 rounded-lg transition-shadow duration-200 hover:shadow-md">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-medium text-gray-800">
             Daily AI prompt
@@ -134,7 +134,7 @@ export default function Home() {
             size="icon"
             onClick={handleRefetchPrompt}
             disabled={aiPrompt.isFetching}
-            className="text-teal-600 hover:text-teal-700"
+            className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-full transition-colors duration-150 cursor-pointer"
           ></Button>
         </CardHeader>
         <CardContent>
@@ -154,15 +154,15 @@ export default function Home() {
           <Button
             onClick={handleRefetchPrompt}
             disabled={aiPrompt.isFetching}
-            className="mt-3 bg-teal-600 hover:bg-teal-700 text-white text-sm py-1.5 px-3 rounded-md hover:shadow-md focus:outline-none focus:ring focus:ring-teal-300 hover:cursor-pointer"
+            className="mt-3 bg-teal-600 hover:bg-teal-700 text-white text-sm py-1.5 px-3 rounded-md hover:shadow-md focus:outline-none focus:ring focus:ring-teal-300 transition-all duration-150 cursor-pointer transform hover:scale-105"
           >
             {aiPrompt.isFetching ? 'Generating...' : 'Generate new prompt'}
           </Button>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 bg-white shadow-sm border border-gray-200 rounded-lg p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 items-start">
+        <Card className="w-max bg-white shadow-sm border border-gray-200 rounded-lg p-4">
           <DayPicker
             mode="single"
             selected={selectedDate}
@@ -175,33 +175,30 @@ export default function Home() {
             fixedWeeks
             className="w-full"
             classNames={{
-              caption: 'flex justify-center items-center h-10 relative mb-2',
-              caption_label: 'text-lg font-medium text-gray-800',
-              nav: 'space-x-1',
+              caption: 'flex items-center justify-between px-8 mb-2',
+              caption_label: 'text-lg font-medium text-gray-800 flex-1 text-center',
+
+              nav: 'flex items-center justify-between absolute left-0 right-0',
               nav_button:
-                'h-8 w-8 p-0 rounded-full hover:bg-gray-100 inline-flex justify-center items-center text-gray-600',
-              nav_button_previous: 'absolute left-1',
-              nav_button_next: 'absolute right-1',
-              table: 'w-full border-collapse mt-2',
-              head_row: 'flex',
-              head_cell:
-                'w-[14.28%] text-gray-500 rounded-md font-normal text-[0.8rem] pb-1',
-              row: 'flex w-full mt-1.5',
-              cell: 'w-[14.28%] h-10 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-teal-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
-              day: 'h-10 w-10 p-0 font-normal rounded-full hover:bg-gray-100 inline-flex items-center justify-center aria-selected:opacity-100',
-              day_selected:
-                'bg-teal-600 text-white hover:bg-teal-700 focus:bg-teal-600 focus:text-white',
-              day_today: 'bg-teal-100 text-teal-800 font-semibold',
+                'h-8 w-8 p-0 inline-flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full',
+              nav_button_previous: 'before:content-["<"]',
+              nav_button_next: 'before:content-[">"]',
+
+              head_row: 'grid grid-cols-7 gap-0 border-b border-gray-200',
+              head_cell: 'text-xs text-gray-500 text-center py-1',
+
+              row: 'grid grid-cols-7 mt-1',
+              cell: 'h-10 w-10 flex items-center justify-center p-0 text-sm',
+
+              day: 'hover:bg-gray-100 transition-colors duration-150 cursor-pointer rounded-full',
+              day_selected: 'bg-teal-600 text-white hover:bg-teal-700 focus:bg-teal-600 focus:text-white',
+              day_today: 'font-semibold text-teal-600',
               day_outside: 'text-gray-400 opacity-50',
-              day_disabled: 'text-gray-400 opacity-50',
-              day_range_middle:
-                'aria-selected:bg-teal-100 aria-selected:text-current',
-              day_hidden: 'invisible',
             }}
           />
         </Card>
 
-        <Card className="lg:col-span-1 bg-white shadow-sm border border-gray-200 rounded-lg">
+        <Card className="w-full bg-white shadow-sm border border-gray-200 rounded-lg transition-shadow duration-200 hover:shadow-md">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-medium text-gray-800">
               {selectedDate
@@ -226,7 +223,7 @@ export default function Home() {
                   {selectedDayEntries.map((entry) => (
                     <li
                       key={entry?.id?.toString() ?? Math.random().toString()}
-                      className="border-l-4 border-teal-500 pl-3 py-1"
+                      className="border-l-4 border-teal-500 pl-3 py-1 hover:bg-gray-50 transition-colors duration-150 cursor-pointer rounded-r-md"
                     >
                       <p className="font-medium text-gray-800 truncate">
                         {entry?.title ?? 'Untitled Entry'}
@@ -237,7 +234,7 @@ export default function Home() {
                             <Badge
                               key={idx}
                               variant="secondary"
-                              className="text-xs px-1.5 py-0.5 bg-gray-200 text-gray-700"
+                              className="text-xs px-1.5 py-0.5 bg-gray-200 text-gray-700 transition-colors duration-150 hover:bg-teal-100 hover:text-teal-800 cursor-default rounded-sm"
                             >
                               {tag}
                             </Badge>

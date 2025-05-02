@@ -69,7 +69,6 @@ export default function EntriesPage() {
     retry: false,
   });
 
-
   const {
     data,
     fetchNextPage,
