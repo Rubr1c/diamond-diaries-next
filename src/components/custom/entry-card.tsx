@@ -150,7 +150,8 @@ const EntryCard: React.FC<EntryCardProps> = ({
   return (
     <li
       key={entry.id}
-      className="p-4 border rounded-lg shadow-sm relative bg-white flex flex-col justify-between min-h-[200px]"
+      className="p-4 border rounded-lg shadow-sm relative bg-white flex flex-col justify-between min-h-[200px] cursor-pointer"
+      onClick={() => onEntryClick(entry.publicId)}
     >
       <div className="flex justify-between items-start mb-2">
         <div>
@@ -190,10 +191,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
         </div>
       </div>
 
-      <div
-        className="cursor-pointer mb-3"
-        onClick={() => onEntryClick(entry.publicId)}
-      >
+      <div className="cursor-pointer mb-3">
         <p className="text-gray-600 text-sm line-clamp-3">{truncatedContent}</p>
       </div>
 
