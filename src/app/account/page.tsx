@@ -770,7 +770,7 @@ export default function Account() {
           <div className="p-6 pt-2">
             <div
               ref={containerRef}
-              className="relative w-[300px] h-[300px] mx-auto rounded-full overflow-hidden border-2 border-gray-300 shadow-inner bg-gray-100 cursor-grab"
+              className="relative w-[300px] h-[300px] mx-auto rounded-full overflow-hidden border-2 border-gray-300 shadow-inner bg-gray-100 cursor-grab hover:border-[#00778a] hover:shadow-md transition-all duration-200"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onWheel={handleWheel}
@@ -808,11 +808,17 @@ export default function Account() {
             {/* Zoom Slider */}
             <div className="mt-6 px-4">
               <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
-                <ZoomOut size={18} />
+                <ZoomOut
+                  size={18}
+                  className="cursor-pointer hover:text-[#003243] transition-colors duration-200"
+                />
                 <span className="flex-grow text-center">
                   Zoom: {Math.round(zoom * 100)}%
                 </span>
-                <ZoomIn size={18} />
+                <ZoomIn
+                  size={18}
+                  className="cursor-pointer hover:text-[#003243] transition-colors duration-200"
+                />
               </div>
               <Slider
                 value={[zoom]}
@@ -820,7 +826,7 @@ export default function Account() {
                 min={0.1} // Keep min at 0.1
                 max={2} // Max 200%
                 step={0.05} // Reverted step to 5%
-                className="w-full [&>span:first-child]:h-2 [&>span:first-child]:bg-gradient-to-r [&>span:first-child]:from-[#005f73] [&>span:first-child]:to-[#0a9396]"
+                className="w-full [&>span:first-child]:h-2 [&>span:first-child]:bg-gradient-to-r [&>span:first-child]:from-[#005f73] [&>span:first-child]:to-[#0a9396] hover:[&>span:nth-child(2)]:bg-[#003243] cursor-pointer"
                 aria-label="Zoom slider"
               />
             </div>
@@ -829,7 +835,7 @@ export default function Account() {
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <p className="mt-4 text-center text-sm text-gray-500 flex items-center justify-center gap-1 cursor-default">
+                  <p className="mt-4 text-center text-sm text-gray-500 flex items-center justify-center gap-1 cursor-pointer hover:text-[#003243] transition-colors duration-200">
                     <Move size={14} /> Click and drag to position, scroll or use
                     slider to zoom.
                   </p>
@@ -854,14 +860,14 @@ export default function Account() {
                 setIsCropModalOpen(false);
                 setImgSrc(''); // Clear image src on cancel
               }}
-              className="hover:bg-gray-100 transition-colors duration-200 border-gray-300 text-gray-700"
+              className="hover:bg-gray-100 transition-colors duration-200 border-gray-300 text-gray-700 hover:scale-[1.02] cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCropConfirm}
               disabled={isUploadingPfp || !imgSrc}
-              className="bg-[#005f73] hover:bg-[#004c5a] text-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-[#005f73] hover:bg-[#004c5a] text-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 hover:scale-[1.02] cursor-pointer"
             >
               {isUploadingPfp ? (
                 <>
