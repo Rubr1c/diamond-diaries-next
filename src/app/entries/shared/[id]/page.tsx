@@ -140,7 +140,6 @@ export default function EntryPage() {
     const name = filename.substring(0, lastDotIndex);
     const extension = filename.substring(lastDotIndex);
 
-    // If name is already 5 chars or less, show it in full
     return name.length <= 5
       ? filename
       : name.substring(0, 5) + '...' + extension;

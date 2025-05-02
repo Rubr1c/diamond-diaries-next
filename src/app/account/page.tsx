@@ -663,7 +663,6 @@ export default function Account() {
                 autoComplete="off"
                 id="new-password-form"
               >
-                {/* Hidden fake fields to trick browser autofill */}
                 <input
                   type="text"
                   name="fakeusernameremembered"
@@ -755,12 +754,11 @@ export default function Account() {
         isLoading={isVerificationLoading}
       />
 
-      {/* --- Profile Picture Crop Modal --- */}
       <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
         <DialogContent
           className="sm:max-w-[450px] bg-white rounded-lg shadow-xl p-0"
-          onMouseUp={handleMouseUp} // Handle mouse up anywhere in the dialog
-          onMouseLeave={handleMouseLeave} // Handle mouse leaving the dialog
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
         >
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-xl font-semibold text-[#003243]">
@@ -774,7 +772,7 @@ export default function Account() {
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onWheel={handleWheel}
-              style={{ touchAction: 'none' }} // Prevent scrolling on touch devices
+              style={{ touchAction: 'none' }}
             >
               {imgSrc && (
                 <img

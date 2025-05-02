@@ -8,7 +8,7 @@ import {
   deleteMedia,
   deleteEntry,
 } from '@/lib/api';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'; // Import useMutation
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';

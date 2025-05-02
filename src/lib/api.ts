@@ -2,7 +2,7 @@ import { Entry } from '@/index/entry';
 import { Folder } from '@/index/folder';
 import { Media } from '@/index/media';
 import { User } from '@/index/user';
-import axios, { AxiosProgressEvent } from 'axios'; // Import AxiosProgressEvent
+import axios, { AxiosProgressEvent } from 'axios';
 
 const api = axios.create({
   baseURL: 'https://diamond-diaries.online' + '/api/' + 'v1',
