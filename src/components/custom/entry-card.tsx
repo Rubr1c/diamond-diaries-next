@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Entry } from '@/index/entry';
 import { Folder } from '@/index/folder';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,7 @@ import {
   deleteEntry,
   addTagsToEntry,
   removeTagFromEntry,
-  removeEntryFromFolder, 
+  removeEntryFromFolder,
 } from '@/lib/api';
 
 interface EntryCardProps {
@@ -39,7 +39,28 @@ const EntryCard: React.FC<EntryCardProps> = ({
   queryKeyToInvalidate,
 }) => {
   const [isAddingTags, setIsAddingTags] = useState(false);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!tooltipVisible) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        !target.closest('.tag-tooltip-container') &&
+        !target.closest('.tag-badge-trigger')
+      ) {
+        setTooltipVisible(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [tooltipVisible]);
 
   const editMutation = useMutation({
     mutationFn: (data: Partial<Entry>) => editEntry(entry.id, data),
@@ -188,7 +209,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
           />
         ) : (
           <div className="flex flex-wrap gap-1 items-center">
-            {entry.tags.map((tag: string, idx: number) => (
+            {entry.tags.slice(0, 3).map((tag: string, idx: number) => (
               <Badge
                 key={idx}
                 variant="secondary"
@@ -205,6 +226,57 @@ const EntryCard: React.FC<EntryCardProps> = ({
                 </button>
               </Badge>
             ))}
+
+            {entry.tags.length > 3 && (
+              <div className="relative">
+                <Badge
+                  variant="secondary"
+                  className="bg-gray-200 text-gray-700 px-2 py-0.5 text-xs rounded-full cursor-pointer tag-badge-trigger"
+                  onClick={() => setTooltipVisible(true)}
+                >
+                  +{entry.tags.length - 3}
+                </Badge>
+
+                {tooltipVisible && (
+                  <div className="absolute left-0 top-full mt-2 z-20 tag-tooltip-container">
+                    <div className="bg-white border border-gray-200 rounded-md shadow-lg p-2 min-w-[150px]">
+                      <div className="flex justify-between items-center mb-2">
+                        <p className="text-xs text-gray-500">More tags:</p>
+                        <button
+                          onClick={() => setTooltipVisible(false)}
+                          className="text-gray-500 hover:text-gray-700"
+                          aria-label="Close tooltip"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        {entry.tags.slice(3).map((tag: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between"
+                          >
+                            <span className="text-xs text-gray-700">{tag}</span>
+                            <button
+                              onClick={(e) => {
+                                handleRemoveTag(e, tag);
+                                // Keep tooltip open after removing a tag
+                                e.stopPropagation();
+                              }}
+                              className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
+                              aria-label={`Remove tag ${tag}`}
+                            >
+                              <X className="h-2.5 w-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <button
               onClick={(e) => {
                 e.stopPropagation();
