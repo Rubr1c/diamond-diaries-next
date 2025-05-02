@@ -176,7 +176,8 @@ export default function Home() {
             className="w-full"
             classNames={{
               caption: 'flex items-center justify-between px-8 mb-2',
-              caption_label: 'text-lg font-medium text-gray-800 flex-1 text-center',
+              caption_label:
+                'text-lg font-medium text-gray-800 flex-1 text-center',
 
               nav: 'flex items-center justify-between absolute left-0 right-0',
               nav_button:
@@ -191,7 +192,8 @@ export default function Home() {
               cell: 'h-10 w-10 flex items-center justify-center p-0 text-sm',
 
               day: 'hover:bg-gray-100 transition-colors duration-150 cursor-pointer rounded-full',
-              day_selected: 'bg-teal-600 text-white hover:bg-teal-700 focus:bg-teal-600 focus:text-white',
+              day_selected:
+                'bg-teal-600 text-white hover:bg-teal-700 focus:bg-teal-600 focus:text-white',
               day_today: 'font-semibold text-teal-600',
               day_outside: 'text-gray-400 opacity-50',
             }}

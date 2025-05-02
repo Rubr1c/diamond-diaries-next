@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useUser } from '@/hooks/useUser';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   updateUser,
   initiatePasswordChange,
@@ -15,8 +15,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VerificationCodeModal } from '@/components/modals/VerificationCodeModal';
-import ReactCrop, { type Crop, PixelCrop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
+
 import {
   Dialog,
   DialogContent,
@@ -36,7 +35,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { resetPasswordSchema } from '@/schemas/auth-schemas';
 import { toast } from 'sonner';
-import { Check } from 'lucide-react';
+import { Check, ZoomIn, ZoomOut, Move } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export default function Account() {
   const { data: user } = useUser();
@@ -55,16 +61,15 @@ export default function Account() {
   const [isVerificationLoading, setIsVerificationLoading] = useState(false);
   const [passwordChangeError, setPasswordChangeError] = useState('');
 
-  // --- State for Profile Picture Cropping ---
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [imgSrc, setImgSrc] = useState('');
-  const [crop, setCrop] = useState<Crop>();
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [zoom, setZoom] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isUploadingPfp, setIsUploadingPfp] = useState(false);
   const [pfpError, setPfpError] = useState('');
   const imgRef = useRef<HTMLImageElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // --- End State for Profile Picture Cropping ---
 
   const passwordForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -85,7 +90,6 @@ export default function Account() {
     }
   }, [user]);
 
-  // Check if there are any changes
   useEffect(() => {
     if (user) {
       const changed =
@@ -119,7 +123,6 @@ export default function Account() {
 
     setIsSubmitting(true);
     try {
-      // Create an object only containing fields that were changed
       const changedFields: Record<string, string | boolean> = {};
 
       if (editedUser.username !== user.username) {
@@ -140,13 +143,10 @@ export default function Account() {
 
       console.log('Sending only changed fields:', changedFields);
 
-      // Send only the changed fields to the backend
       await updateUser(changedFields);
 
-      // Refresh user data
       queryClient.invalidateQueries({ queryKey: ['user'] });
 
-      // Show success feedback
       toast.success('Settings updated successfully!');
     } catch (error) {
       console.error('Failed to update user settings:', error);
@@ -211,81 +211,72 @@ export default function Account() {
     }
   };
 
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setCrop(undefined);
       const reader = new FileReader();
-      reader.addEventListener('load', () =>
-        setImgSrc(reader.result?.toString() || '')
-      );
+      reader.addEventListener('load', () => {
+        setImgSrc(reader.result?.toString() || '');
+        setPosition({ x: 0, y: 0 });
+        setZoom(1);
+        setPfpError('');
+        setIsCropModalOpen(true);
+      });
       reader.readAsDataURL(e.target.files[0]);
-      setIsCropModalOpen(true);
-      setPfpError('');
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
 
-  const getCroppedImg = useCallback(
-    async (
-      image: HTMLImageElement,
-      cropData: PixelCrop
-    ): Promise<File | null> => {
-      const canvas = document.createElement('canvas');
-      const scaleX = image.naturalWidth / image.width;
-      const scaleY = image.naturalHeight / image.height;
-      canvas.width = cropData.width;
-      canvas.height = cropData.height;
-      const ctx = canvas.getContext('2d');
+  const initCrop = () => {
+    if (imgRef.current && containerRef.current) {
+      const img = imgRef.current;
+      const container = containerRef.current;
+      const rect = container.getBoundingClientRect();
+      const cw = rect.width;
+      const ch = rect.height;
 
-      if (!ctx) {
-        return null;
+      const iw = img.naturalWidth;
+      const ih = img.naturalHeight;
+
+      if (iw === 0 || ih === 0 || cw === 0 || ch === 0) {
+        console.error('Image or container dimensions are zero during init.');
+        setPfpError('Could not initialize image editor. Dimensions invalid.');
+        return;
       }
 
-      const pixelRatio = window.devicePixelRatio;
-      canvas.width = cropData.width * pixelRatio;
-      canvas.height = cropData.height * pixelRatio;
-      ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-      ctx.imageSmoothingQuality = 'high';
+      const scaleX = cw / iw;
+      const scaleY = ch / ih;
+      const initialZoom = Math.max(scaleX, scaleY);
 
-      ctx.drawImage(
-        image,
-        cropData.x * scaleX,
-        cropData.y * scaleY,
-        cropData.width * scaleX,
-        cropData.height * scaleY,
-        0,
-        0,
-        cropData.width,
-        cropData.height
-      );
+      const clampedInitialZoom = Math.max(initialZoom, 0.1);
 
-      return new Promise((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error('Canvas is empty'));
-              return;
-            }
-            // Ensure the blob has a type, default to png if needed
-            const fileType = blob.type || 'image/png';
-            const fileName = `profile_picture.${
-              fileType.split('/')[1] || 'png'
-            }`;
-            resolve(new File([blob], fileName, { type: fileType }));
-          },
-          'image/png', // Specify PNG format, can be changed to jpeg etc.
-          1 // Quality argument (0 to 1)
-        );
+      setZoom(clampedInitialZoom);
+
+      const scaledW = iw * clampedInitialZoom;
+      const scaledH = ih * clampedInitialZoom;
+      const initialX = (cw - scaledW) / 2;
+      const initialY = (ch - scaledH) / 2;
+
+      const minX = cw - scaledW;
+      const minY = ch - scaledH;
+
+      setPosition({
+        x: Math.min(0, Math.max(minX, initialX)),
+        y: Math.min(0, Math.max(minY, initialY)),
       });
-    },
-    []
-  );
+    } else {
+      console.error('Image ref or container ref not available for initCrop');
+      setPfpError('Could not initialize image editor.');
+    }
+  };
 
   const handleCropConfirm = async () => {
-    if (!completedCrop || !imgRef.current) {
-      setPfpError('Could not process the image crop.');
+    if (!imgRef.current || !containerRef.current) {
+      setPfpError('Could not process the image. Refs missing.');
       return;
     }
 
@@ -293,21 +284,72 @@ export default function Account() {
     setPfpError('');
 
     try {
-      const croppedImageFile = await getCroppedImg(
-        imgRef.current,
-        completedCrop
-      );
-      if (!croppedImageFile) {
-        throw new Error('Failed to create cropped image file.');
+      const img = imgRef.current;
+      const container = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const canvas = document.createElement('canvas');
+
+      const outputSize = containerRect.width;
+      canvas.width = outputSize;
+      canvas.height = outputSize;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
       }
+
+      ctx.beginPath();
+      ctx.arc(
+        canvas.width / 2,
+        canvas.height / 2,
+        canvas.width / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.closePath();
+      ctx.clip();
+
+      const sourceX = -position.x / zoom;
+      const sourceY = -position.y / zoom;
+      const sourceWidth = outputSize / zoom;
+      const sourceHeight = outputSize / zoom;
+
+      const destX = 0;
+      const destY = 0;
+      const destWidth = outputSize;
+      const destHeight = outputSize;
+
+      ctx.drawImage(
+        img,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        destX,
+        destY,
+        destWidth,
+        destHeight
+      );
+
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((b) => resolve(b), 'image/png', 1);
+      });
+
+      if (!blob) {
+        throw new Error('Failed to create image blob');
+      }
+
+      const file = new File([blob], 'profile_picture.png', {
+        type: 'image/png',
+      });
 
       try {
         await deleteProfilePicture();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (deleteError: any) {
+      } catch (deleteError: unknown) {
+        const errorResponse = deleteError as { response?: { status?: number } };
         if (
-          deleteError?.response?.status !== 404 &&
-          deleteError?.response?.status !== 204
+          errorResponse?.response?.status !== 404 &&
+          errorResponse?.response?.status !== 204
         ) {
           console.warn(
             'Could not delete existing profile picture, proceeding with upload:',
@@ -315,25 +357,169 @@ export default function Account() {
           );
         }
       }
-
-      await uploadProfilePicture(croppedImageFile);
-
+      await uploadProfilePicture(file);
       queryClient.invalidateQueries({ queryKey: ['user'] });
 
       setIsCropModalOpen(false);
       setImgSrc('');
-      setCrop(undefined);
-      setCompletedCrop(undefined);
+      setZoom(1);
+      setPosition({ x: 0, y: 0 });
       toast.success('Profile picture updated successfully!');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to upload profile picture:', error);
-      setPfpError('Failed to upload profile picture. Please try again.');
+      const errorMessage =
+        error instanceof Error ? error.message : 'Please try again.';
+      setPfpError(`Failed to upload profile picture: ${errorMessage}`);
     } finally {
       setIsUploadingPfp(false);
     }
   };
 
-  // --- End Profile Picture Handling Functions ---
+  const handleWheel = (e: WheelEvent | React.WheelEvent<HTMLDivElement>) => {
+    if (e instanceof WheelEvent) {
+      e.preventDefault();
+    }
+    if (!imgRef.current || !containerRef.current) return;
+
+    const img = imgRef.current;
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+
+    const scaleAmount = e.deltaY > 0 ? -0.05 : 0.05;
+    let newZoom = zoom + scaleAmount;
+
+    const minZoomX = rect.width / iw;
+    const minZoomY = rect.height / ih;
+    const minZoom = Math.max(minZoomX, minZoomY, 0.1);
+    newZoom = Math.min(2, Math.max(minZoom, newZoom));
+
+    if (newZoom === zoom) return;
+
+    const scaledW = iw * newZoom;
+    const scaledH = ih * newZoom;
+
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const dx = (mouseX - position.x) * (newZoom / zoom - 1);
+    const dy = (mouseY - position.y) * (newZoom / zoom - 1);
+
+    let newX = position.x - dx;
+    let newY = position.y - dy;
+
+    const minX = rect.width - scaledW;
+    const minY = rect.height - scaledH;
+    newX = Math.min(0, Math.max(minX, newX));
+    newY = Math.min(0, Math.max(minY, newY));
+
+    setZoom(newZoom);
+    setPosition({ x: newX, y: newY });
+  };
+
+  useEffect(() => {
+    const container = containerRef.current;
+
+    const wheelHandler = (e: WheelEvent) => {
+      handleWheel(e);
+    };
+
+    if (container) {
+      container.addEventListener('wheel', wheelHandler, { passive: false });
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('wheel', wheelHandler);
+      }
+    };
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!imgRef.current) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    if (containerRef.current) {
+      containerRef.current.style.cursor = 'grabbing';
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      if (containerRef.current) {
+        containerRef.current.style.cursor = 'grab';
+      }
+    }
+  };
+
+  const handleMouseLeave = () => {
+    handleMouseUp();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !imgRef.current || !containerRef.current) return;
+    e.preventDefault();
+
+    const img = imgRef.current;
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+
+    let newX = e.clientX - dragStart.x;
+    let newY = e.clientY - dragStart.y;
+
+    const scaledW = iw * zoom;
+    const scaledH = ih * zoom;
+    const minX = rect.width - scaledW;
+    const minY = rect.height - scaledH;
+
+    newX = Math.min(0, Math.max(minX, newX));
+    newY = Math.min(0, Math.max(minY, newY));
+
+    setPosition({ x: newX, y: newY });
+  };
+
+  const handleZoomChange = (value: number[]) => {
+    if (!imgRef.current || !containerRef.current) return;
+    let newZoom = value[0];
+
+    const img = imgRef.current;
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+
+    const minZoomX = rect.width / iw;
+    const minZoomY = rect.height / ih;
+    const minZoom = Math.max(minZoomX, minZoomY, 0.1);
+    newZoom = Math.min(2, Math.max(minZoom, newZoom));
+
+    if (newZoom === zoom) return;
+
+    const scaledW = iw * newZoom;
+    const scaledH = ih * newZoom;
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const dx = (centerX - position.x) * (newZoom / zoom - 1);
+    const dy = (centerY - position.y) * (newZoom / zoom - 1);
+
+    let newX = position.x - dx;
+    let newY = position.y - dy;
+
+    const minX = rect.width - scaledW;
+    const minY = rect.height - scaledH;
+    newX = Math.min(0, Math.max(minX, newX));
+    newY = Math.min(0, Math.max(minY, newY));
+
+    setZoom(newZoom);
+    setPosition({ x: newX, y: newY });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16">
@@ -378,68 +564,71 @@ export default function Account() {
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <label htmlFor="username" className="text-gray-700 font-medium">
+                <label htmlFor="username" className="text-gray-700">
                   Username
                 </label>
-                <input
+                <Input
                   id="username"
                   type="text"
-                  className="w-2/3 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#003243] focus:border-[#003243] transition-all duration-200 cursor-text"
                   value={editedUser.username}
                   onChange={handleInputChange}
+                  className="w-1/2 border-gray-300 rounded-md shadow-sm focus:border-[#00778a] focus:ring focus:ring-[#00778a] focus:ring-opacity-50"
                 />
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-gray-700 font-medium">Email</span>
-                <span className="text-gray-600 w-2/3 px-3 py-2">
-                  {user?.email}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700 font-medium">Enable 2FA</span>
+                <label className="text-gray-700">Enable 2FA</label>
                 <button
-                  className={`w-24 px-3 py-2 rounded-full transition-all duration-200 ${
-                    editedUser.enabled2fa
-                      ? 'bg-[#01C269] text-white hover:bg-[#01A050]'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  } hover:shadow-md cursor-pointer`}
                   onClick={() => toggleSetting('enabled2fa')}
+                  className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00778a] ${
+                    editedUser.enabled2fa ? 'bg-[#01C269]' : 'bg-gray-300'
+                  }`}
                 >
-                  {editedUser.enabled2fa ? 'Enabled' : 'Disabled'}
+                  <span
+                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${
+                      editedUser.enabled2fa ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
                 </button>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-gray-700 font-medium">
-                  Allow AI title access
-                </span>
+                <label className="text-gray-700">Allow AI Title Access</label>
                 <button
-                  className={`w-24 px-3 py-2 rounded-full transition-all duration-200 ${
-                    editedUser.aiAllowTitleAccess
-                      ? 'bg-[#01C269] text-white hover:bg-[#01A050]'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  } hover:shadow-md cursor-pointer`}
                   onClick={() => toggleSetting('aiAllowTitleAccess')}
+                  className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00778a] ${
+                    editedUser.aiAllowTitleAccess
+                      ? 'bg-[#01C269]'
+                      : 'bg-gray-300'
+                  }`}
                 >
-                  {editedUser.aiAllowTitleAccess ? 'Enabled' : 'Disabled'}
+                  <span
+                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${
+                      editedUser.aiAllowTitleAccess
+                        ? 'translate-x-6'
+                        : 'translate-x-1'
+                    }`}
+                  />
                 </button>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-gray-700 font-medium">
-                  Allow AI content access
-                </span>
+                <label className="text-gray-700">Allow AI Content Access</label>
                 <button
-                  className={`w-24 px-3 py-2 rounded-full transition-all duration-200 ${
-                    editedUser.aiAllowContentAccess
-                      ? 'bg-[#01C269] text-white hover:bg-[#01A050]'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  } hover:shadow-md cursor-pointer`}
                   onClick={() => toggleSetting('aiAllowContentAccess')}
+                  className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00778a] ${
+                    editedUser.aiAllowContentAccess
+                      ? 'bg-[#01C269]'
+                      : 'bg-gray-300'
+                  }`}
                 >
-                  {editedUser.aiAllowContentAccess ? 'Enabled' : 'Disabled'}
+                  <span
+                    className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${
+                      editedUser.aiAllowContentAccess
+                        ? 'translate-x-6'
+                        : 'translate-x-1'
+                    }`}
+                  />
                 </button>
               </div>
             </div>
@@ -568,48 +757,139 @@ export default function Account() {
 
       {/* --- Profile Picture Crop Modal --- */}
       <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
-        <DialogContent className="sm:max-w-[525px]">
-          <DialogHeader>
-            <DialogTitle>Crop Profile Picture</DialogTitle>
+        <DialogContent
+          className="sm:max-w-[450px] bg-white rounded-lg shadow-xl p-0"
+          onMouseUp={handleMouseUp} // Handle mouse up anywhere in the dialog
+          onMouseLeave={handleMouseLeave} // Handle mouse leaving the dialog
+        >
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-xl font-semibold text-[#003243]">
+              Edit Profile Picture
+            </DialogTitle>
           </DialogHeader>
-          {pfpError && (
-            <div className="my-2 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
-              {pfpError}
-            </div>
-          )}
-          {imgSrc && (
-            <ReactCrop
-              crop={crop}
-              onChange={(_, percentCrop) => setCrop(percentCrop)}
-              onComplete={(c) => setCompletedCrop(c)}
-              aspect={1} // Enforce square aspect ratio
-              minWidth={50} // Minimum crop size
-              minHeight={50}
-              circularCrop // Optional: for circular preview
+          <div className="p-6 pt-2">
+            <div
+              ref={containerRef}
+              className="relative w-[300px] h-[300px] mx-auto rounded-full overflow-hidden border-2 border-gray-300 shadow-inner bg-gray-100 cursor-grab"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onWheel={handleWheel}
+              style={{ touchAction: 'none' }} // Prevent scrolling on touch devices
             >
-              <img
-                ref={imgRef}
-                alt="Crop me"
-                src={imgSrc}
-                style={{ maxHeight: '70vh' }}
+              {imgSrc && (
+                <img
+                  ref={imgRef}
+                  alt="Crop preview"
+                  src={imgSrc}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    transformOrigin: 'top left', // Correct origin
+                    transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                    width: 'auto', // Use natural dimensions scaled by transform
+                    height: 'auto',
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                  }}
+                  onLoad={initCrop} // Initialize crop on load
+                  draggable="false"
+                />
+              )}
+              {!imgSrc && (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                  Loading image...
+                </div>
+              )}
+            </div>
+
+            {/* Zoom Slider */}
+            <div className="mt-6 px-4">
+              <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
+                <ZoomOut size={18} />
+                <span className="flex-grow text-center">
+                  Zoom: {Math.round(zoom * 100)}%
+                </span>
+                <ZoomIn size={18} />
+              </div>
+              <Slider
+                value={[zoom]}
+                onValueChange={handleZoomChange}
+                min={0.1} // Keep min at 0.1
+                max={2} // Max 200%
+                step={0.05} // Reverted step to 5%
+                className="w-full [&>span:first-child]:h-2 [&>span:first-child]:bg-gradient-to-r [&>span:first-child]:from-[#005f73] [&>span:first-child]:to-[#0a9396]"
+                aria-label="Zoom slider"
               />
-            </ReactCrop>
-          )}
-          <DialogFooter>
+            </div>
+
+            {/* Instructions */}
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="mt-4 text-center text-sm text-gray-500 flex items-center justify-center gap-1 cursor-default">
+                    <Move size={14} /> Click and drag to position, scroll or use
+                    slider to zoom.
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-lg">
+                  Adjust your profile picture.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {pfpError && (
+              <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm shadow-md">
+                {pfpError}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="bg-gray-50 p-4 border-t border-gray-200 rounded-b-lg flex justify-end gap-3">
             <Button
               variant="outline"
-              onClick={() => setIsCropModalOpen(false)}
-              disabled={isUploadingPfp}
-              className="hover:bg-gray-100 transition-all duration-200 cursor-pointer"
+              onClick={() => {
+                setIsCropModalOpen(false);
+                setImgSrc(''); // Clear image src on cancel
+              }}
+              className="hover:bg-gray-100 transition-colors duration-200 border-gray-300 text-gray-700"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCropConfirm}
-              disabled={!completedCrop || isUploadingPfp}
-              className="bg-[#003243] hover:bg-[#004d6b] transition-all duration-200 cursor-pointer"
+              disabled={isUploadingPfp || !imgSrc}
+              className="bg-[#005f73] hover:bg-[#004c5a] text-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isUploadingPfp ? 'Uploading...' : 'Confirm Crop'}
+              {isUploadingPfp ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : (
+                'Save Profile Picture'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
