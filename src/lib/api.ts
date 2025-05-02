@@ -30,6 +30,13 @@ api.interceptors.response.use(
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       console.warn('Authentication error (401) - removing token');
       localStorage.removeItem('token');
+
+      if (
+        typeof window !== 'undefined' &&
+        !error.config?.url?.includes('/auth/login')
+      ) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -61,17 +68,11 @@ export async function logout() {
 
 export async function getUser(): Promise<User> {
   try {
-    console.log(
-      'Attempting to fetch user data with token:',
-      localStorage.getItem('token')
-    );
     const response = await api.get('/user/me');
-    console.log('User data fetched successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error details when fetching user data:', error);
 
-    // Only remove token for authentication errors (401/403), not for other issues
     if (
       axios.isAxiosError(error) &&
       (error.response?.status === 401 || error.response?.status === 403)
@@ -177,8 +178,6 @@ export async function fetchEntries(
       amount,
     },
   });
-  console.log(offset, amount);
-  console.log(res.data);
 
   return res.data;
 }
@@ -255,8 +254,6 @@ export async function searchEntries(query: string): Promise<Entry[]> {
       query,
     },
   });
-
-  console.log(res);
 
   return res.data;
 }

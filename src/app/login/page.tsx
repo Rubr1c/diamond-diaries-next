@@ -26,6 +26,7 @@ export default function Login() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVerificationLoading, setIsVerificationLoading] = useState(false);
   const [email, setEmail] = useState('');
+  const [loginError, setLoginError] = useState('');
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -47,13 +48,11 @@ export default function Login() {
       if (user) {
         router.push('/');
       } else {
-        // If no user is returned but no error thrown, show an error message
         throw new Error('Invalid verification code');
       }
     } catch (error) {
       console.log(error);
       setIsVerificationLoading(false);
-      // Let the error bubble up to the VerificationCodeModal
       throw error;
     }
   }
@@ -61,6 +60,7 @@ export default function Login() {
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
       setIsVerificationLoading(true);
+      setLoginError(''); // Clear previous errors
       const user = await login(values.email, values.password);
       if (!user) {
         setEmail(values.email);
@@ -72,6 +72,7 @@ export default function Login() {
       router.push('/');
     } catch (error) {
       console.log(error);
+      setLoginError('Invalid email or password. Please try again.');
       setIsVerificationLoading(false);
     }
   }
@@ -134,6 +135,11 @@ export default function Login() {
                 Forgot Password?
               </Link>
             </div>
+            {loginError && (
+              <div className="mt-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+                {loginError}
+              </div>
+            )}
             <div className="flex justify-center">
               <Button
                 type="submit"
