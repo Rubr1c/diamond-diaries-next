@@ -43,8 +43,6 @@ export default function EntriesPage() {
     null,
     null,
   ]);
-  // Removed addingTagsToEntry state, now managed within EntryCard
-  // Mutations for favorite, delete, add tag, remove tag are now handled within EntryCard
 
   const { data: availableTags = [] } = useQuery({
     queryKey: ['tags'],
@@ -317,7 +315,6 @@ export default function EntriesPage() {
                     );
                     let queryKeyToInvalidate: string[];
                     if (dateRange[0] && dateRange[1]) {
-                      // Use formatted dates to ensure string[] type
                       queryKeyToInvalidate = [
                         'entries',
                         'date-range',
@@ -325,10 +322,8 @@ export default function EntriesPage() {
                         format(dateRange[1], 'yyyy-MM-dd'),
                       ];
                     } else if (searchedEntries) {
-                      // Assuming search invalidation uses a simple key
                       queryKeyToInvalidate = ['entries', 'search']; // This needs to match the actual search query key if different
                     } else {
-                      // Spread filterTags to create a flat string array
                       queryKeyToInvalidate = ['entries', ...filterTags];
                     }
 
@@ -338,9 +333,9 @@ export default function EntriesPage() {
                         entry={entry}
                         truncatedContent={truncatedContent}
                         availableTags={availableTags}
-                        availableFolders={availableFolders} // Pass folders down
+                        availableFolders={availableFolders}
                         onEntryClick={handleEntryClick}
-                        onShareClick={handleShareClick} // Pass the handler function
+                        onShareClick={handleShareClick}
                         queryKeyToInvalidate={queryKeyToInvalidate}
                       />
                     );

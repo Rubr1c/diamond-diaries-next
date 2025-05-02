@@ -250,14 +250,17 @@ const EntryCard: React.FC<EntryCardProps> = ({
               <span className="text-xs">Change</span>
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-200">
-              <SelectItem value="null" className="text-xs">
+              <SelectItem
+                value="null"
+                className="text-xs hover:bg-gray-200 transition-colors"
+              >
                 No Folder
               </SelectItem>
               {availableFolders?.map((folder) => (
                 <SelectItem
                   key={folder.id.toString()}
                   value={folder.id.toString()}
-                  className="text-xs"
+                  className="text-xs hover:bg-gray-200 transition-colors"
                 >
                   {folder.name}
                 </SelectItem>
