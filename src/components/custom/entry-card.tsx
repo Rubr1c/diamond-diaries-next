@@ -18,6 +18,7 @@ import {
   removeTagFromEntry,
   removeEntryFromFolder,
 } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface EntryCardProps {
   entry: Entry;
@@ -40,6 +41,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
 }) => {
   const [isAddingTags, setIsAddingTags] = useState(false);
   const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -75,8 +77,12 @@ const EntryCard: React.FC<EntryCardProps> = ({
     mutationFn: () => deleteEntry(entry.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
+      toast.success('Entry deleted successfully');
     },
-    onError: (error) => console.error('Error deleting entry:', error),
+    onError: (error) => {
+      console.error('Error deleting entry:', error);
+      toast.error('Failed to delete entry');
+    },
   });
 
   const addTagMutation = useMutation({
@@ -131,7 +137,30 @@ const EntryCard: React.FC<EntryCardProps> = ({
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    deleteMutation.mutate();
+    // Show confirmation instead of deleting immediately
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(false);
+
+    // Add animation class before deleting
+    const entryElement = e.currentTarget.closest('li');
+    if (entryElement) {
+      entryElement.classList.add('animate-delete');
+      // Wait for animation to complete before actual deletion
+      setTimeout(() => {
+        deleteMutation.mutate();
+      }, 500);
+    } else {
+      deleteMutation.mutate();
+    }
+  };
+
+  const cancelDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(false);
   };
 
   const handleAddTag = (tag: string) => {
@@ -353,26 +382,40 @@ const EntryCard: React.FC<EntryCardProps> = ({
           </button>
           <button
             className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Add animation class before deleting
-              const entryElement = e.currentTarget.closest('li');
-              if (entryElement) {
-                entryElement.classList.add('animate-delete');
-                // Wait for animation to complete before actual deletion
-                setTimeout(() => {
-                  handleDeleteClick(e);
-                }, 500);
-              } else {
-                handleDeleteClick(e);
-              }
-            }}
+            onClick={handleDeleteClick}
             aria-label="Delete entry"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Popup */}
+      {showDeleteConfirm && (
+        <div
+          className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex flex-col items-center justify-center z-10 p-4 shadow-md border border-gray-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="text-center mb-4 text-gray-800">
+            Delete{' '}
+            <span className="font-bold text-[#003243]">{entry.title}</span>?
+          </p>
+          <div className="flex space-x-3">
+            <button
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-all duration-200 hover:shadow-sm cursor-pointer"
+              onClick={cancelDelete}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-200 hover:shadow-md cursor-pointer"
+              onClick={confirmDelete}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
     </li>
   );
 };
