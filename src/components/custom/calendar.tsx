@@ -64,33 +64,79 @@ export function JournalCalendar({
     return null;
   };
 
-  const tileClassName = ({ date, view }: { date: Date; view: string }) => {
-    if (
-      view === 'month' &&
-      activeDate &&
-      date.getDate() === activeDate.getDate() &&
-      date.getMonth() === activeDate.getMonth() &&
-      date.getFullYear() === activeDate.getFullYear()
-    ) {
-      return 'bg-[#1E4959] text-white rounded-lg';
-    }
-    return null;
-  };
-
   return (
     <Card className="p-4 shadow-md bg-white">
       <Calendar
         onChange={handleDateChange}
         value={calendarValue}
         tileContent={tileContent}
-        tileClassName={tileClassName}
-        className="border-0 w-full"
+        tileClassName={({ date, view }) => {
+          let classes = '';
+
+          // Active date styling
+          if (
+            view === 'month' &&
+            activeDate &&
+            date.getDate() === activeDate.getDate() &&
+            date.getMonth() === activeDate.getMonth() &&
+            date.getFullYear() === activeDate.getFullYear()
+          ) {
+            classes += 'bg-[#003243] text-white rounded-lg';
+          }
+
+          return classes;
+        }}
+        className="border-0 w-full custom-calendar"
         selectRange={selectRange}
         nextLabel="›"
         next2Label="»"
         prevLabel="‹"
         prev2Label="«"
       />
+      <style jsx global>{`
+        .custom-calendar .react-calendar__navigation {
+          background-color: #003243;
+          color: white;
+          border-radius: 4px;
+          margin-bottom: 10px;
+        }
+
+        .custom-calendar .react-calendar__navigation button {
+          color: white;
+          font-weight: bold;
+        }
+
+        .custom-calendar .react-calendar__navigation button:enabled:hover,
+        .custom-calendar .react-calendar__navigation button:enabled:focus {
+          background-color: #004d6b;
+        }
+
+        .custom-calendar .react-calendar__tile:enabled:hover,
+        .custom-calendar .react-calendar__tile:enabled:focus {
+          background-color: #e6f7ff;
+          color: #003243;
+        }
+
+        .custom-calendar .react-calendar__tile--active {
+          background-color: #003243 !important;
+          color: white !important;
+        }
+
+        .custom-calendar .react-calendar__tile--now {
+          background-color: #e6f7ff;
+          color: #003243;
+          font-weight: bold;
+        }
+
+        .custom-calendar .react-calendar__month-view__days__day--weekend {
+          color: #003243;
+        }
+
+        .custom-calendar
+          .react-calendar__month-view__days__day--neighboringMonth {
+          color: #757575;
+        }
+      `}</style>
     </Card>
   );
 }

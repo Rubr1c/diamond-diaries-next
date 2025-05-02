@@ -119,8 +119,8 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white p-6">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white p-6 shadow-lg border border-gray-200 rounded-lg">
+        <DialogHeader className="pb-2 border-b border-gray-100">
           <DialogTitle className="text-xl font-semibold text-[#003243]">
             Create New Journal Entry
           </DialogTitle>
@@ -129,17 +129,21 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
           <div>
             <label
               htmlFor="title"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#003243] mb-1"
             >
               Title
             </label>
-            <Input id="title" {...register('title')} />
+            <Input
+              id="title"
+              {...register('title')}
+              className="focus-visible:ring-[#003243]/50 transition-all duration-200 shadow-sm"
+            />
           </div>
 
           <div>
             <label
               htmlFor="folderId"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#003243] mb-1"
             >
               Folder (Optional)
             </label>
@@ -151,7 +155,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
                   onValueChange={field.onChange}
                   value={field.value || ''}
                 >
-                  <SelectTrigger className="w-full bg-white border-gray-300 shadow-sm">
+                  <SelectTrigger className="w-full bg-white border-gray-300 shadow-sm focus-visible:ring-[#003243]/50 transition-all duration-200">
                     <SelectValue placeholder="Select a folder" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-gray-200 shadow-md">
@@ -159,7 +163,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
                       <SelectItem
                         key={folder.id.toString()}
                         value={folder.id.toString()}
-                        className="hover:bg-gray-100"
+                        className="hover:bg-gray-100 transition-colors duration-200"
                       >
                         {folder.name}
                       </SelectItem>
@@ -173,7 +177,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
           <div>
             <label
               htmlFor="content"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#003243] mb-1"
             >
               Content
             </label>
@@ -181,7 +185,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
               id="content"
               {...register('content')}
               rows={8}
-              className="resize-none"
+              className="resize-none focus-visible:ring-[#003243]/50 transition-all duration-200 shadow-sm"
             />
             <p className="text-sm text-gray-500 mt-1">
               Word Count: {wordCount}
@@ -191,7 +195,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
           <div>
             <label
               htmlFor="tags"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="block text-sm font-medium text-[#003243] mb-1"
             >
               Tags (Optional)
             </label>
@@ -200,18 +204,19 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
               availableTags={availableTags || []}
               onTagAdd={handleAddTag}
               onTagRemove={handleRemoveTag}
+              className="mb-2"
             />
             {selectedTags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {selectedTags.map((tag, idx) => (
                   <div
                     key={idx}
-                    className="bg-[#003243] text-white px-2 py-0.5 text-xs rounded-full flex items-center gap-1"
+                    className="bg-[#003243] text-white px-2 py-0.5 text-xs rounded-full flex items-center gap-1 transition-all duration-200 hover:bg-[#004d6b] hover:shadow-sm"
                   >
                     {tag}
                     <button
                       onClick={() => handleRemoveTag(tag)}
-                      className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
+                      className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white hover:scale-110"
                       aria-label={`Remove tag ${tag}`}
                     >
                       <svg
@@ -234,16 +239,20 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          <DialogFooter className="pt-4 flex justify-end gap-2">
+          <DialogFooter className="pt-4 flex justify-end gap-2 border-t border-gray-100 mt-6">
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-gray-300 hover:bg-gray-100 transition-colors duration-200"
+              >
                 Cancel
               </Button>
             </DialogClose>
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="bg-[#01C269] hover:bg-[#01A055]"
+              className="bg-[#003243] hover:bg-[#004d6b] text-white transition-colors duration-200 shadow-sm"
             >
               {mutation.isPending ? 'Creating...' : 'Create Entry'}
             </Button>

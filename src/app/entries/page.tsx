@@ -298,34 +298,39 @@ export default function EntriesPage() {
                     </div>
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="p-0 w-auto" align="start">
-                  <div className="p-2 flex justify-between items-center border-b">
+                <PopoverContent
+                  className="p-0 w-auto bg-white shadow-md border border-gray-200 rounded-md"
+                  align="start"
+                >
+                  <div className="p-2 flex justify-between items-center border-b bg-[#003243] text-white">
                     <span className="text-sm font-medium">Date Range</span>
                     {(dateRange[0] || dateRange[1]) && (
                       <button
                         onClick={clearDateFilter}
-                        className="text-xs text-[#003243] hover:text-[#002233]"
+                        className="text-xs text-white hover:text-gray-200"
                       >
                         Clear
                       </button>
                     )}
                   </div>
-                  <JournalCalendar
-                    entries={[]}
-                    value={dateRange as [Date | null, Date | null]}
-                    onChange={(value) => {
-                      if (Array.isArray(value) && value[0] && value[1]) {
-                        handleDateRangeSelect(value[0], value[1]);
-                      }
-                    }}
-                    selectRange={true}
-                  />
+                  <div className="bg-white p-2">
+                    <JournalCalendar
+                      entries={[]}
+                      value={dateRange as [Date | null, Date | null]}
+                      onChange={(value) => {
+                        if (Array.isArray(value) && value[0] && value[1]) {
+                          handleDateRangeSelect(value[0], value[1]);
+                        }
+                      }}
+                      selectRange={true}
+                    />
+                  </div>
                   {/* Clear button below calendar */}
                   {(dateRange[0] || dateRange[1]) && (
-                    <div className="p-2 border-t border-gray-100 flex justify-center">
+                    <div className="p-2 border-t border-gray-100 flex justify-center bg-white">
                       <button
                         onClick={clearDateFilter}
-                        className="text-sm text-[#003243] hover:text-[#002233] px-3 py-1 border border-[#003243] rounded-md"
+                        className="text-sm text-white bg-[#003243] hover:bg-[#002233] px-3 py-1 rounded-md transition-colors duration-200"
                       >
                         Clear Date Range
                       </button>
