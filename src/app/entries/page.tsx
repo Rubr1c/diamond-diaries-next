@@ -8,13 +8,9 @@ import {
   fetchAllTags,
   fetchAllEntriesByTags,
   fetchEntriesByDateRange,
-  fetchAllFolders, // Added fetchAllFolders import
+  fetchAllFolders,
 } from '@/lib/api';
-import {
-  useQuery,
-  useInfiniteQuery,
-  // useQueryClient, // Keep commented out or remove if not needed for direct invalidations
-} from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
 import { marked } from 'marked';
@@ -218,14 +214,14 @@ export default function EntriesPage() {
             <div className="flex items-center space-x-2">
               <Link
                 href="folders"
-                className="p-2 text-[#003243] hover:text-[#002233] bg-gray-100 rounded-md flex items-center justify-center"
+                className="p-2 text-[#003243] hover:text-[#002233] bg-gray-100 hover:bg-gray-200 rounded-md flex items-center justify-center transition-all duration-200 hover:shadow-sm"
                 aria-label="Folders"
               >
                 <FolderIcon className="h-5 w-5" />
               </Link>
               <button
                 onClick={() => setIsNewEntryModalOpen(true)}
-                className="bg-[#003243] text-white p-2 rounded-md hover:bg-[#002233] flex items-center justify-center"
+                className="bg-[#003243] text-white p-2 rounded-md hover:bg-[#004d6b] flex items-center justify-center transition-all duration-200 hover:shadow-md hover:scale-105 hover:cursor-pointer"
                 aria-label="New Entry"
               >
                 <PlusIcon className="h-5 w-5" />
@@ -234,7 +230,6 @@ export default function EntriesPage() {
           </div>
 
           <div className="flex flex-wrap gap-2 mb-4 items-center">
-            {/* Search input */}
             <div className="relative flex-grow">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <svg
@@ -284,11 +279,11 @@ export default function EntriesPage() {
               <Popover>
                 <PopoverTrigger asChild>
                   <button
-                    className="p-2 border rounded-md flex items-center justify-between bg-white hover:bg-gray-50"
+                    className="group p-2 border rounded-md flex items-center justify-between bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-sm hover:border-[#003243]"
                     aria-label="Select date range"
                   >
                     <div className="flex items-center">
-                      <CalendarIcon className="h-4 w-4 text-gray-500" />
+                      <CalendarIcon className="h-4 w-4 text-gray-500 group-hover:text-[#003243]" />
                       {dateRange[0] && dateRange[1] && (
                         <span className="text-xs text-gray-700 ml-1">
                           {format(dateRange[0], 'MM/dd')} -{' '}

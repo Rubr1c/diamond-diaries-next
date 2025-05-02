@@ -135,8 +135,7 @@ export default function Home() {
             onClick={handleRefetchPrompt}
             disabled={aiPrompt.isFetching}
             className="text-teal-600 hover:text-teal-700"
-          >
-          </Button>
+          ></Button>
         </CardHeader>
         <CardContent>
           {aiPrompt.isLoading && (
@@ -155,7 +154,7 @@ export default function Home() {
           <Button
             onClick={handleRefetchPrompt}
             disabled={aiPrompt.isFetching}
-            className="mt-3 bg-teal-600 hover:bg-teal-700 text-white text-sm py-1.5 px-3 rounded-md"
+            className="mt-3 bg-teal-600 hover:bg-teal-700 text-white text-sm py-1.5 px-3 rounded-md hover:shadow-md focus:outline-none focus:ring focus:ring-teal-300 hover:cursor-pointer"
           >
             {aiPrompt.isFetching ? 'Generating...' : 'Generate new prompt'}
           </Button>
@@ -213,7 +212,9 @@ export default function Home() {
           <CardContent className="pt-0 h-[400px] overflow-y-auto">
             {' '}
             {isLoadingMonthEntries ? (
-              <p className="text-gray-500 italic">Loading month&#39;s entries...</p>
+              <p className="text-gray-500 italic">
+                Loading month&#39;s entries...
+              </p>
             ) : monthEntriesError ? (
               <p className="text-red-600 italic">
                 Error loading month&#39;s entries:{' '}
