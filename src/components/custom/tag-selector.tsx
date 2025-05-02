@@ -1,10 +1,8 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
 
 interface TagSelectorProps {
   selectedTags: string[];
@@ -19,13 +17,13 @@ export function TagSelector({
   selectedTags,
   availableTags,
   onTagAdd,
-  onTagRemove,
   className = '',
   showAddNew = true,
 }: TagSelectorProps) {
   const [currentTagInput, setCurrentTagInput] = useState('');
   const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const filteredTags = (availableTags || []).filter(
     (tag) =>
@@ -44,33 +42,29 @@ export function TagSelector({
     }
   };
 
-  return (
-    <div className={className} onClick={(e) => e.stopPropagation()}>
-      {/* Selected Tags Display */}
-      <div className="flex flex-wrap gap-2 mb-3 min-h-8">
-        {selectedTags.map((tag) => (
-          <Badge
-            key={tag}
-            variant="secondary"
-            className="bg-[#003243] text-white px-2 py-1 text-sm rounded-full flex items-center gap-1 group"
-          >
-            {tag}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onTagRemove(tag);
-              }}
-              className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
-              aria-label={`Remove ${tag} tag`}
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        ))}
-      </div>
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsTagPopoverOpen(false);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div
+      className={className}
+      onClick={(e) => e.stopPropagation()}
+      ref={containerRef}
+    >
       {/* Tag Input and Selection */}
       <div className="relative">
         <Input
@@ -79,7 +73,7 @@ export function TagSelector({
           onChange={(e) => setCurrentTagInput(e.target.value)}
           onClick={() => setIsTagPopoverOpen(true)}
           placeholder="Click to add tags..."
-          className="cursor-pointer"
+          className="cursor-pointer w-full"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
@@ -93,7 +87,7 @@ export function TagSelector({
         />
 
         {isTagPopoverOpen && (
-          <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-[200px] overflow-y-auto">
+          <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-[300px] overflow-y-auto">
             <div className="p-2">
               <div className="flex flex-wrap gap-2">
                 {filteredTags.length > 0 ? (

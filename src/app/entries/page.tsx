@@ -26,6 +26,12 @@ import { JournalCalendar } from '@/components/custom/calendar';
 import { format } from 'date-fns';
 import EntryCard from '@/components/custom/entry-card';
 import Link from 'next/link';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { CalendarIcon, FolderIcon, PlusIcon, X } from 'lucide-react';
 
 const PAGE_SIZE = 10;
 
@@ -97,6 +103,8 @@ export default function EntriesPage() {
   const handleDateRangeSelect = (startDate: Date, endDate: Date) => {
     setDateRange([startDate, endDate]);
     setSearchedEntries(null);
+    // Clear tag filters when date range is selected
+    setFilterTags([]);
   };
 
   const clearDateFilter = () => {
@@ -122,6 +130,8 @@ export default function EntriesPage() {
 
   // Tag filter handlers
   const handleAddFilterTag = (tag: string) => {
+    // Clear date range when adding a tag filter
+    setDateRange([null, null]);
     setFilterTags((prev) => [...prev, tag]);
   };
 
@@ -191,7 +201,6 @@ export default function EntriesPage() {
       : plainText;
   }
 
- 
   const handleShareClick = (e: React.MouseEvent, entryId: bigint) => {
     e.stopPropagation();
     setSelectedEntryId(entryId);
@@ -206,19 +215,61 @@ export default function EntriesPage() {
             <h1 className="text-2xl font-bold text-[#003243]">
               Journal Entries
             </h1>
-            <button
-              onClick={() => setIsNewEntryModalOpen(true)}
-              className="bg-[#003243] text-white px-4 py-2 rounded-md hover:bg-[#002233]"
-            >
-              New Entry
-            </button>
+            <div className="flex items-center space-x-2">
+              <Link
+                href="folders"
+                className="p-2 text-[#003243] hover:text-[#002233] bg-gray-100 rounded-md flex items-center justify-center"
+                aria-label="Folders"
+              >
+                <FolderIcon className="h-5 w-5" />
+              </Link>
+              <button
+                onClick={() => setIsNewEntryModalOpen(true)}
+                className="bg-[#003243] text-white p-2 rounded-md hover:bg-[#002233] flex items-center justify-center"
+                aria-label="New Entry"
+              >
+                <PlusIcon className="h-5 w-5" />
+              </button>
+            </div>
           </div>
-          <Link href="folders">Folders</Link>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Filter by Tags
-              </label>
+
+          <div className="flex flex-wrap gap-2 mb-4 items-center">
+            {/* Search input */}
+            <div className="relative flex-grow">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search entries..."
+                className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-1 focus:ring-[#003243] focus:border-[#003243]"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (debounceTimeout.current)
+                    clearTimeout(debounceTimeout.current);
+                  debounceTimeout.current = setTimeout(() => {
+                    handleSearch(value);
+                  }, 300);
+                }}
+              />
+            </div>
+
+            {/* Filter by Tags */}
+            <div className="flex-grow-0 min-w-[150px] self-stretch flex items-center">
               <TagSelector
                 selectedTags={filterTags}
                 availableTags={availableTags}
@@ -227,47 +278,87 @@ export default function EntriesPage() {
                 showAddNew={false}
               />
             </div>
+
             {/* Filter by date range */}
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-medium text-gray-700">
-                  Filter by Date Range
-                </label>
-                {(dateRange[0] || dateRange[1]) && (
+            <div className="flex-grow-0">
+              <Popover>
+                <PopoverTrigger asChild>
                   <button
-                    onClick={clearDateFilter}
-                    className="text-sm text-[#003243] hover:text-[#002233]"
+                    className="p-2 border rounded-md flex items-center justify-between bg-white hover:bg-gray-50"
+                    aria-label="Select date range"
                   >
-                    Clear Date Range
+                    <div className="flex items-center">
+                      <CalendarIcon className="h-4 w-4 text-gray-500" />
+                      {dateRange[0] && dateRange[1] && (
+                        <span className="text-xs text-gray-700 ml-1">
+                          {format(dateRange[0], 'MM/dd')} -{' '}
+                          {format(dateRange[1], 'MM/dd')}
+                        </span>
+                      )}
+                    </div>
                   </button>
-                )}
-              </div>
-              <JournalCalendar
-                entries={[]}
-                value={dateRange as [Date | null, Date | null]}
-                onChange={(value) => {
-                  if (Array.isArray(value) && value[0] && value[1]) {
-                    handleDateRangeSelect(value[0], value[1]);
-                  }
-                }}
-                selectRange={true}
-              />
+                </PopoverTrigger>
+                <PopoverContent className="p-0 w-auto" align="start">
+                  <div className="p-2 flex justify-between items-center border-b">
+                    <span className="text-sm font-medium">Date Range</span>
+                    {(dateRange[0] || dateRange[1]) && (
+                      <button
+                        onClick={clearDateFilter}
+                        className="text-xs text-[#003243] hover:text-[#002233]"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <JournalCalendar
+                    entries={[]}
+                    value={dateRange as [Date | null, Date | null]}
+                    onChange={(value) => {
+                      if (Array.isArray(value) && value[0] && value[1]) {
+                        handleDateRangeSelect(value[0], value[1]);
+                      }
+                    }}
+                    selectRange={true}
+                  />
+                  {/* Clear button below calendar */}
+                  {(dateRange[0] || dateRange[1]) && (
+                    <div className="p-2 border-t border-gray-100 flex justify-center">
+                      <button
+                        onClick={clearDateFilter}
+                        className="text-sm text-[#003243] hover:text-[#002233] px-3 py-1 border border-[#003243] rounded-md"
+                      >
+                        Clear Date Range
+                      </button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
-          {/* Search input */}
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full p-2 border rounded-md mb-4"
-            onChange={(e) => {
-              const value = e.target.value;
-              if (debounceTimeout.current)
-                clearTimeout(debounceTimeout.current);
-              debounceTimeout.current = setTimeout(() => {
-                handleSearch(value);
-              }, 300);
-            }}
-          />
+
+          {/* Selected Tags Display - Moved outside the flex container */}
+          {filterTags.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {filterTags.map((tag) => (
+                <span
+                  key={tag}
+                  className="bg-[#003243] text-white px-2 py-1 text-sm rounded-full flex items-center gap-1"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFilterTag(tag)}
+                    className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
+                    aria-label={`Remove ${tag} tag`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Remove the duplicate search input div */}
 
           {(() => {
             const displayData =
