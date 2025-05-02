@@ -7,11 +7,7 @@ import EntryCard, { EntryCardProps } from '@/components/custom/entry-card';
 import { Entry } from '@/index/entry';
 import { Folder } from '@/index/folder';
 import { User } from '@/index/user';
-import {
-  QueryClient,
-  QueryClientProvider,
-  UseMutationOptions,
-} from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const mockInvalidateQueries = jest.fn();
 const mockMutate = jest.fn();
@@ -21,12 +17,10 @@ jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({
     invalidateQueries: mockInvalidateQueries,
   }),
-  useMutation: jest.fn(
-    (_options?: UseMutationOptions<unknown, Error, unknown, unknown>) => ({
-      mutate: mockMutate,
-      isPending: false,
-    })
-  ),
+  useMutation: jest.fn(() => ({
+    mutate: mockMutate,
+    isPending: false,
+  })),
 }));
 
 jest.mock('sonner', () => ({
