@@ -244,7 +244,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
               <Button
                 type="button"
                 variant="outline"
-                className="border-gray-300 hover:bg-gray-100 transition-colors duration-200"
+                className="border-gray-300 hover:bg-gray-100 transition-all duration-200 hover:shadow-sm hover:scale-105 cursor-pointer"
               >
                 Cancel
               </Button>
@@ -252,7 +252,7 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="bg-[#003243] hover:bg-[#004d6b] text-white transition-colors duration-200 shadow-sm"
+              className="bg-[#003243] hover:bg-[#004d6b] text-white transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 cursor-pointer"
             >
               {mutation.isPending ? 'Creating...' : 'Create Entry'}
             </Button>
