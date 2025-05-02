@@ -22,7 +22,7 @@ jest.mock('@tanstack/react-query', () => ({
     invalidateQueries: mockInvalidateQueries,
   }),
   useMutation: jest.fn(
-    (options?: UseMutationOptions<any, Error, any, any>) => ({
+    (_options?: UseMutationOptions<unknown, Error, unknown, unknown>) => ({
       mutate: mockMutate,
       isPending: false,
     })
