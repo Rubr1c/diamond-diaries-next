@@ -6,6 +6,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
 import { useUser } from '@/hooks/useUser';
+import { Mic, MicOff } from 'lucide-react';
+import 'regenerator-runtime/runtime';
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from 'react-speech-recognition';
 
 function getCookie(name: string) {
   const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -44,6 +49,14 @@ export default function EntryEditPage() {
   const autosaveTimeout = useRef<NodeJS.Timeout | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const id = params.id as string;
+
+  // Speech recognition setup
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
 
   const { data: entry } = useQuery({
     queryKey: [`entry-${id}`],
@@ -91,6 +104,14 @@ export default function EntryEditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, autosave]);
 
+  // Effect to append transcript to content when it changes
+  useEffect(() => {
+    if (transcript) {
+      setContent((prevContent) => prevContent + ' ' + transcript);
+      resetTranscript();
+    }
+  }, [transcript, resetTranscript]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!entry) return;
@@ -105,6 +126,38 @@ export default function EntryEditPage() {
     queryClient.invalidateQueries({ queryKey: ['entries'] });
     setIsSaving(false);
     router.push(`/entries/${id}`);
+  }
+
+  const toggleListening = () => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+    } else {
+      SpeechRecognition.startListening({
+        continuous: true,
+        language: 'en-US',
+      });
+    }
+  };
+
+  // Remove the problematic useEffect that's causing duplicate transcriptions
+  // useEffect(() => {
+  //   if (listening) {
+  //     SpeechRecognition.stopListening();
+  //   } else {
+  //     SpeechRecognition.startListening({
+  //       continuous: true,
+  //       interimResults: true,
+  //       language: 'en-US',
+  //     });
+  //   }
+  // }, [listening]);
+
+  if (!browserSupportsSpeechRecognition) {
+    return (
+      <div className="text-center mt-4">
+        Browser doesn&apos;t support speech recognition.
+      </div>
+    );
   }
 
   return (
@@ -165,13 +218,13 @@ export default function EntryEditPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
             {/* Editor */}
             <div className="w-full h-full">
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full h-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-[#01C269] focus:border-transparent whitespace-pre-wrap bg-[#1E4959] text-white border-0"
+                className="w-full h-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-[#01C269] focus:border-transparent whitespace-pre-wrap bg-[#1E4959] text-white border-0 overflow-auto"
                 style={{ whiteSpace: 'pre-wrap' }}
               />
             </div>
@@ -186,6 +239,19 @@ export default function EntryEditPage() {
             <div className="flex items-center gap-2 text-sm text-gray-500">
               {entry && <span>{countWords(stripMarkdown(content))} words</span>}
             </div>
+
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`p-3 rounded-full ${
+                listening
+                  ? 'bg-red-500 hover:bg-red-600'
+                  : 'bg-[#01C269] hover:bg-[#01A050]'
+              } text-white shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex items-center justify-center`}
+              title={listening ? 'Stop recording' : 'Start voice to text'}
+            >
+              {listening ? <MicOff size={20} /> : <Mic size={20} />}
+            </button>
           </div>
         </form>
       </div>
