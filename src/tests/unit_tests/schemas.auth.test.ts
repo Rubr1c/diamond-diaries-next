@@ -200,7 +200,6 @@ describe('Auth Schemas', () => {
         registerSchema.parse(invalidData);
       } catch (error) {
         if (error instanceof ZodError) {
-
           const refineError = error.errors.find(
             (e) => e.message === "Passwords don't match"
           );
@@ -226,12 +225,7 @@ describe('Auth Schemas', () => {
       expect(verifySchema.parse(validData)).toEqual(validData);
     });
 
-    it.each([
-      ['12345'], 
-      ['1234567'],
-      [''], 
-      ['abcdef'],
-    ])(
+    it.each([['12345'], ['1234567'], [''], ['abcdef']])(
       'should fail validation for code with incorrect length: %s',
       (invalidCode) => {
         const invalidData = { code: invalidCode };

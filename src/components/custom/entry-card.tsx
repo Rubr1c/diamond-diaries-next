@@ -20,7 +20,7 @@ import {
 } from '@/lib/api';
 import { toast } from 'sonner';
 
-interface EntryCardProps {
+export interface EntryCardProps {
   entry: Entry;
   truncatedContent: string;
   availableTags: string[];
@@ -196,7 +196,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
             {new Date(entry.journalDate).toLocaleDateString()}
           </p>
         </div>
-        <div className="cursor-pointer" onClick={handleFavoriteToggle}>
+        <div className="cursor-pointer" onClick={handleFavoriteToggle} data-testid="favorite-toggle" >
           {entry?.isFavorite ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -377,6 +377,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
               onShareClick(e, entry.id);
             }}
             aria-label="Share entry"
+            data-testid="share-button"
           >
             <Share2 className="h-4 w-4" />
           </button>
@@ -384,17 +385,18 @@ const EntryCard: React.FC<EntryCardProps> = ({
             className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer"
             onClick={handleDeleteClick}
             aria-label="Delete entry"
+            data-testid="delete-button"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {/* Delete Confirmation Popup */}
       {showDeleteConfirm && (
         <div
           className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex flex-col items-center justify-center z-10 p-4 shadow-md border border-gray-200"
           onClick={(e) => e.stopPropagation()}
+          data-testid="delete-confirm-dialog"
         >
           <p className="text-center mb-4 text-gray-800">
             Delete{' '}
@@ -404,12 +406,14 @@ const EntryCard: React.FC<EntryCardProps> = ({
             <button
               className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-all duration-200 hover:shadow-sm cursor-pointer"
               onClick={cancelDelete}
+              data-testid="cancel-delete-button"
             >
               Cancel
             </button>
             <button
               className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-200 hover:shadow-md cursor-pointer"
               onClick={confirmDelete}
+              data-testid="confirm-delete-button"
             >
               Delete
             </button>
