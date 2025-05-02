@@ -41,3 +41,16 @@ body {
   animation: delete-animation 0.5s ease-in-out forwards;
   pointer-events: none;
 }
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
