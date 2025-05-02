@@ -4,6 +4,7 @@ export interface Entry {
   id: bigint;
   publicId: string;
   tags: string[];
+  folderId: bigint;
   user: User;
   title: string;
   content: string;

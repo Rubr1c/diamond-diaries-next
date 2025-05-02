@@ -1,12 +1,14 @@
 'use client';
 
 import { Entry } from '@/index/entry';
+import { Folder } from '@/index/folder'; // Added Folder import
 import {
   fetchEntries,
   searchEntries,
   fetchAllTags,
   fetchAllEntriesByTags,
   fetchEntriesByDateRange,
+  fetchAllFolders, // Added fetchAllFolders import
 } from '@/lib/api';
 import {
   useQuery,
@@ -47,6 +49,12 @@ export default function EntriesPage() {
   const { data: availableTags = [] } = useQuery({
     queryKey: ['tags'],
     queryFn: fetchAllTags,
+  });
+
+  // Fetch available folders
+  const { data: availableFolders = [] } = useQuery<Folder[]>({
+    queryKey: ['folders'],
+    queryFn: fetchAllFolders,
   });
 
   const { data: dateFilteredEntries } = useQuery({
@@ -335,6 +343,7 @@ export default function EntriesPage() {
                         entry={entry}
                         truncatedContent={truncatedContent}
                         availableTags={availableTags}
+                        availableFolders={availableFolders} // Pass folders down
                         onEntryClick={handleEntryClick}
                         onShareClick={handleShareClick} // Pass the handler function
                         queryKeyToInvalidate={queryKeyToInvalidate}

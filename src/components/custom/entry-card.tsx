@@ -1,23 +1,32 @@
 import React, { useState } from 'react';
 import { Entry } from '@/index/entry';
+import { Folder } from '@/index/folder';
 import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { X, Folder as FolderIcon } from 'lucide-react';
 import { TagSelector } from '@/components/custom/tag-selector';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   editEntry,
   deleteEntry,
   addTagsToEntry,
   removeTagFromEntry,
+  removeEntryFromFolder, // Added removeEntryFromFolder import
 } from '@/lib/api';
 
 interface EntryCardProps {
   entry: Entry;
   truncatedContent: string;
   availableTags: string[];
+  availableFolders: Folder[]; // Added availableFolders prop
   onEntryClick: (publicId: string) => void;
   onShareClick: (e: React.MouseEvent, entryId: bigint) => void; // Keep for modal control
-  // Removed action callbacks: onFavoriteToggle, onDeleteClick, onRemoveTag, onAddTagToEntry, onRemoveTagFromEntry
   queryKeyToInvalidate: string[]; // Key(s) to invalidate in the parent component
 }
 
@@ -25,6 +34,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
   entry,
   truncatedContent,
   availableTags,
+  availableFolders, // Destructure availableFolders
   onEntryClick,
   onShareClick,
   queryKeyToInvalidate,
@@ -69,6 +79,28 @@ const EntryCard: React.FC<EntryCardProps> = ({
     },
     onError: (error) => console.error('Failed to remove tag:', error),
   });
+
+  // Mutation for changing folder (using editEntry)
+  const editFolderMutation = useMutation({
+    mutationFn: (folderId: bigint) => editEntry(entry.id, { folderId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
+      queryClient.invalidateQueries({ queryKey: [`entry-${entry.publicId}`] });
+    },
+    onError: (error) => console.error('Error changing entry folder:', error),
+  });
+
+  // Mutation for removing entry from folder
+  const removeFolderMutation = useMutation({
+    mutationFn: () => removeEntryFromFolder(entry.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
+      queryClient.invalidateQueries({ queryKey: [`entry-${entry.publicId}`] });
+    },
+    onError: (error) =>
+      console.error('Error removing entry from folder:', error),
+  });
+
   // --- End Mutations ---
 
   if (!entry) return null;
@@ -92,13 +124,27 @@ const EntryCard: React.FC<EntryCardProps> = ({
     e.stopPropagation();
     removeTagMutation.mutate(tagName);
   };
+
+  // Handler for folder change
+  const handleFolderChange = (value: string) => {
+    // value will be folderId as string or 'null' for no folder
+    if (value === 'null') {
+      // Call removeEntryFromFolder mutation
+      removeFolderMutation.mutate();
+    } else {
+      // Call editEntry mutation with the new folderId
+      const newFolderId = BigInt(value);
+      editFolderMutation.mutate(newFolderId);
+    }
+  };
   // --- End Event Handlers ---
 
   return (
     <li
       key={entry.id}
-      className="p-4 border rounded-lg shadow-sm relative hover:shadow-lg transition-shadow duration-200 hover:p-5 transform hover:-translate-y-1"
+      className="p-4 border rounded-lg shadow-sm relative hover:shadow-lg transition-shadow duration-200 hover:p-5 transform hover:-translate-y-1 flex flex-col justify-between min-h-[200px]" // Added flex layout and min-height
     >
+      {/* Top section: Favorite icon */}
       <div
         className="absolute top-2 right-2 cursor-pointer p-1"
         onClick={handleFavoriteToggle}
@@ -129,16 +175,29 @@ const EntryCard: React.FC<EntryCardProps> = ({
           </svg>
         )}
       </div>
-      <div className="cursor-pointer">
-        <div onClick={() => onEntryClick(entry.publicId)}>
-          <h2 className="text-xl font-semibold">{entry.title}</h2>
-          <p className="text-gray-600 mb-2">{truncatedContent}</p>
-          <p className="text-sm text-gray-500 mb-2">
+
+      {/* Middle section: Content and Tags */}
+      <div className="flex-grow cursor-pointer mb-4">
+        {' '}
+        {/* Added flex-grow and mb-4 */}
+        <div onClick={() => onEntryClick(entry.publicId)} className="mb-4">
+          {' '}
+          {/* Added mb-4 */}
+          <h2 className="text-xl font-semibold mb-1">{entry.title}</h2>{' '}
+          {/* Added mb-1 */}
+          <p className="text-gray-600 mb-2 text-sm line-clamp-3">
+            {truncatedContent}
+          </p>{' '}
+          {/* Added line-clamp */}
+          <p className="text-xs text-gray-500 mb-2">
+            {' '}
+            {/* Adjusted text size */}
             {new Date(entry.journalDate).toLocaleDateString()}
           </p>
         </div>
-
-        <div className="mb-10 relative" onClick={(e) => e.stopPropagation()}>
+        <div className="relative" onClick={(e) => e.stopPropagation()}>
+          {' '}
+          {/* Removed mb-10 */}
           {isAddingTags ? (
             <TagSelector
               selectedTags={entry.tags}
@@ -149,12 +208,14 @@ const EntryCard: React.FC<EntryCardProps> = ({
               // For simplicity now, it closes on add, stays open on remove.
             />
           ) : (
-            <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex flex-wrap gap-1 items-center">
+              {' '}
+              {/* Reduced gap */}
               {entry.tags.map((tag: string, idx: number) => (
                 <Badge
                   key={idx}
                   variant="secondary"
-                  className="bg-[#003243] text-white px-2 py-1 text-sm rounded-full flex items-center gap-1 group"
+                  className="bg-[#003243] text-white px-2 py-0.5 text-xs rounded-full flex items-center gap-1 group" // Adjusted padding/text size
                   onClick={(e) => e.stopPropagation()}
                 >
                   {tag}
@@ -163,7 +224,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
                     className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
                     aria-label={`Remove tag ${tag}`}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-2.5 w-2.5" /> {/* Adjusted icon size */}
                   </button>
                 </Badge>
               ))}
@@ -172,7 +233,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
                   e.stopPropagation();
                   setIsAddingTags(true);
                 }}
-                className="text-sm text-gray-500 hover:text-[#003243]"
+                className="text-xs text-gray-500 hover:text-[#003243]" // Adjusted text size
               >
                 + Add Tag
               </button>
@@ -180,15 +241,52 @@ const EntryCard: React.FC<EntryCardProps> = ({
           )}
         </div>
       </div>
-      <div className="absolute bottom-2 right-2 flex space-x-2">
+
+      {/* Bottom section: Actions (Folder Select, Share, Delete) */}
+      <div className="flex items-center justify-end space-x-2 mt-auto pt-2 border-t border-gray-100">
+        {' '}
+        {/* Added flex, items-center, justify-end, mt-auto, pt-2, border-t */}
+        {/* Folder Select Dropdown */}
+        <div onClick={(e) => e.stopPropagation()} className="w-32">
+          {' '}
+          {/* Added container with width */}
+          <Select
+            value={entry.folderId?.toString() ?? 'null'} // Use 'null' string for no folder
+            onValueChange={handleFolderChange}
+          >
+            <SelectTrigger className="h-8 text-xs">
+              {' '}
+              {/* Adjusted height and text size */}
+              <FolderIcon className="h-3 w-3 mr-1" /> {/* Added icon */}
+              <SelectValue placeholder="Select Folder" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="null" className="text-xs">
+                No Folder
+              </SelectItem>{' '}
+              {/* Option for no folder */}
+              {availableFolders?.map((folder) => (
+                <SelectItem
+                  key={folder.id.toString()}
+                  value={folder.id.toString()}
+                  className="text-xs"
+                >
+                  {folder.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Share Button */}
         <button
-          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
+          className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 text-xs" // Adjusted padding/text size
           onClick={(e) => onShareClick(e, entry.id)}
         >
           Share
         </button>
+        {/* Delete Button */}
         <button
-          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+          className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-xs" // Adjusted padding/text size
           onClick={handleDeleteClick}
         >
           Delete
