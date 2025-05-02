@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createSharedEntry } from '@/lib/api';
 import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface ShareEntryModalProps {
   entryId: bigint | null;
@@ -24,14 +25,24 @@ const ShareEntryModal: React.FC<ShareEntryModalProps> = ({
     }) => createSharedEntry(data.entryId, data.allowedUsers, data.allowAnyone),
     onSuccess: (data) => {
       console.log('Shared entry created:', data);
-      alert(
-        `Shareable link created: ${window.location.origin}/entries/shared/${data}`
-      );
+      const shareableLink = `${window.location.origin}/entries/shared/${data}`;
+
+      toast('Link created successfully', {
+        description: 'Your shareable link is ready',
+        action: {
+          label: 'Copy',
+          onClick: () => {
+            navigator.clipboard.writeText(shareableLink);
+            toast.success('Link copied to clipboard!');
+          },
+        },
+      });
+
       onClose();
     },
     onError: (error) => {
       console.error('Error sharing entry:', error);
-      alert('Failed to share entry.');
+      toast.error('Failed to share entry.');
     },
   });
 

@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { newEntry, fetchAllFolders, fetchAllTags } from '@/lib/api';
 import { Folder } from '@/index/folder';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -76,13 +77,14 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
     }) => newEntry(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['entries'] });
+      toast.success('Entry created successfully!');
       onClose();
       reset();
       setSelectedTags([]);
     },
     onError: (error) => {
       console.error('Error creating entry:', error);
-      alert('Failed to create entry.');
+      toast.error('Failed to create entry.');
     },
   });
 
