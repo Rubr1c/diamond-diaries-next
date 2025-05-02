@@ -121,7 +121,9 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white p-6">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-[#003243]">Create New Journal Entry</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-[#003243]">
+            Create New Journal Entry
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-4">
           <div>
@@ -199,6 +201,37 @@ const NewEntryModal: React.FC<NewEntryModalProps> = ({ isOpen, onClose }) => {
               onTagAdd={handleAddTag}
               onTagRemove={handleRemoveTag}
             />
+            {selectedTags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {selectedTags.map((tag, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-[#003243] text-white px-2 py-0.5 text-xs rounded-full flex items-center gap-1"
+                  >
+                    {tag}
+                    <button
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
+                      aria-label={`Remove tag ${tag}`}
+                    >
+                      <svg
+                        width="8"
+                        height="8"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <DialogFooter className="pt-4 flex justify-end gap-2">
