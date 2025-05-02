@@ -16,17 +16,17 @@ import {
   deleteEntry,
   addTagsToEntry,
   removeTagFromEntry,
-  removeEntryFromFolder, // Added removeEntryFromFolder import
+  removeEntryFromFolder, 
 } from '@/lib/api';
 
 interface EntryCardProps {
   entry: Entry;
   truncatedContent: string;
   availableTags: string[];
-  availableFolders: Folder[]; // Added availableFolders prop
+  availableFolders: Folder[];
   onEntryClick: (publicId: string) => void;
-  onShareClick: (e: React.MouseEvent, entryId: bigint) => void; // Keep for modal control
-  queryKeyToInvalidate: string[]; // Key(s) to invalidate in the parent component
+  onShareClick: (e: React.MouseEvent, entryId: bigint) => void;
+  queryKeyToInvalidate: string[];
 }
 
 const EntryCard: React.FC<EntryCardProps> = ({
@@ -41,7 +41,6 @@ const EntryCard: React.FC<EntryCardProps> = ({
   const [isAddingTags, setIsAddingTags] = useState(false);
   const queryClient = useQueryClient();
 
-  // --- Mutations ---
   const editMutation = useMutation({
     mutationFn: (data: Partial<Entry>) => editEntry(entry.id, data),
     onSuccess: () => {
@@ -64,7 +63,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
       queryClient.invalidateQueries({ queryKey: ['tags'] }); // Invalidate available tags too
-      setIsAddingTags(false); // Close selector after adding
+      setIsAddingTags(false);
     },
     onError: (error) => console.error('Failed to add tag:', error),
   });
@@ -74,12 +73,10 @@ const EntryCard: React.FC<EntryCardProps> = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeyToInvalidate });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
-      // Keep selector open after removing
     },
     onError: (error) => console.error('Failed to remove tag:', error),
   });
 
-  // Mutation for changing folder (using editEntry)
   const editFolderMutation = useMutation({
     mutationFn: (folderId: bigint) => editEntry(entry.id, { folderId }),
     onSuccess: () => {
@@ -89,7 +86,6 @@ const EntryCard: React.FC<EntryCardProps> = ({
     onError: (error) => console.error('Error changing entry folder:', error),
   });
 
-  // Mutation for removing entry from folder
   const removeFolderMutation = useMutation({
     mutationFn: () => removeEntryFromFolder(entry.id),
     onSuccess: () => {
@@ -100,11 +96,8 @@ const EntryCard: React.FC<EntryCardProps> = ({
       console.error('Error removing entry from folder:', error),
   });
 
-  // --- End Mutations ---
-
   if (!entry) return null;
 
-  // --- Event Handlers ---
   const handleFavoriteToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     editMutation.mutate({ isFavorite: !entry.isFavorite });
@@ -124,26 +117,20 @@ const EntryCard: React.FC<EntryCardProps> = ({
     removeTagMutation.mutate(tagName);
   };
 
-  // Handler for folder change
   const handleFolderChange = (value: string) => {
-    // value will be folderId as string or 'null' for no folder
     if (value === 'null') {
-      // Call removeEntryFromFolder mutation
       removeFolderMutation.mutate();
     } else {
-      // Call editEntry mutation with the new folderId
       const newFolderId = BigInt(value);
       editFolderMutation.mutate(newFolderId);
     }
   };
-  // --- End Event Handlers ---
 
   return (
     <li
       key={entry.id}
       className="p-4 border rounded-lg shadow-sm relative bg-white flex flex-col justify-between min-h-[200px]"
     >
-      {/* Top section: Title, Date, and Heart */}
       <div className="flex justify-between items-start mb-2">
         <div>
           <h2 className="text-xl font-semibold text-[#003243]">
@@ -182,7 +169,6 @@ const EntryCard: React.FC<EntryCardProps> = ({
         </div>
       </div>
 
-      {/* Content section */}
       <div
         className="cursor-pointer mb-3"
         onClick={() => onEntryClick(entry.publicId)}
@@ -198,6 +184,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
             availableTags={availableTags}
             onTagAdd={handleAddTag}
             onTagRemove={(tag) => removeTagMutation.mutate(tag)}
+            autoFocus={true}
           />
         ) : (
           <div className="flex flex-wrap gap-1 items-center">
@@ -222,6 +209,14 @@ const EntryCard: React.FC<EntryCardProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 setIsAddingTags(true);
+                setTimeout(() => {
+                  const inputElement = document.querySelector(
+                    '.tag-selector-input'
+                  );
+                  if (inputElement instanceof HTMLInputElement) {
+                    inputElement.focus();
+                  }
+                }, 0);
               }}
               className="text-xs text-gray-500 hover:text-[#003243]"
             >
@@ -231,9 +226,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
         )}
       </div>
 
-      {/* Bottom section: Folder and Actions */}
       <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
-        {/* Folder Display */}
         <div onClick={(e) => e.stopPropagation()} className="flex items-center">
           <FolderIcon className="h-4 w-4 text-gray-500 mr-1" />
           <span className="text-xs text-gray-500">

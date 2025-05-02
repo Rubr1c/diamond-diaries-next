@@ -11,6 +11,7 @@ interface TagSelectorProps {
   onTagRemove: (tag: string) => void;
   className?: string;
   showAddNew?: boolean;
+  autoFocus?: boolean; // New prop to control auto-expansion
 }
 
 export function TagSelector({
@@ -19,6 +20,7 @@ export function TagSelector({
   onTagAdd,
   className = '',
   showAddNew = true,
+  autoFocus = false,
 }: TagSelectorProps) {
   const [currentTagInput, setCurrentTagInput] = useState('');
   const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
@@ -42,7 +44,15 @@ export function TagSelector({
     }
   };
 
-  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (autoFocus) {
+      setIsTagPopoverOpen(true);
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }
+  }, [autoFocus]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -65,7 +75,6 @@ export function TagSelector({
       onClick={(e) => e.stopPropagation()}
       ref={containerRef}
     >
-      {/* Tag Input and Selection */}
       <div className="relative">
         <Input
           ref={inputRef}
@@ -73,7 +82,7 @@ export function TagSelector({
           onChange={(e) => setCurrentTagInput(e.target.value)}
           onClick={() => setIsTagPopoverOpen(true)}
           placeholder="Click to add tags..."
-          className="cursor-pointer w-full"
+          className="cursor-pointer w-full tag-selector-input"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
