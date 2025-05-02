@@ -160,10 +160,10 @@ const EntryCard: React.FC<EntryCardProps> = ({
     >
       <div className="flex justify-between items-start mb-2">
         <div>
-          <h2 className="text-xl font-semibold text-[#003243]">
+          <h2 className="text-xl font-semibold text-[#003243] transition-colors duration-200 hover:text-[#004d6b]">
             {entry.title}
           </h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 transition-colors duration-200 hover:text-gray-700">
             {new Date(entry.journalDate).toLocaleDateString()}
           </p>
         </div>
@@ -197,7 +197,9 @@ const EntryCard: React.FC<EntryCardProps> = ({
       </div>
 
       <div className="cursor-pointer mb-3">
-        <p className="text-gray-600 text-sm line-clamp-3">{truncatedContent}</p>
+        <p className="text-gray-600 text-sm line-clamp-3 transition-colors duration-200 hover:text-gray-900">
+          {truncatedContent}
+        </p>
       </div>
 
       {/* Tags section */}
@@ -216,13 +218,13 @@ const EntryCard: React.FC<EntryCardProps> = ({
               <Badge
                 key={idx}
                 variant="secondary"
-                className="bg-[#003243] text-white px-2 py-0.5 text-xs rounded-full flex items-center gap-1"
+                className="bg-[#003243] text-white px-2 py-0.5 text-xs rounded-full flex items-center gap-1 transition-all duration-200 hover:bg-[#004d6b] hover:shadow-sm"
                 onClick={(e) => e.stopPropagation()}
               >
                 {tag}
                 <button
                   onClick={(e) => handleRemoveTag(e, tag)}
-                  className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
+                  className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-white hover:scale-110"
                   aria-label={`Remove tag ${tag}`}
                 >
                   <X className="h-2.5 w-2.5" />
@@ -234,20 +236,20 @@ const EntryCard: React.FC<EntryCardProps> = ({
               <div className="relative">
                 <Badge
                   variant="secondary"
-                  className="bg-gray-200 text-gray-700 px-2 py-0.5 text-xs rounded-full cursor-pointer tag-badge-trigger"
+                  className="bg-gray-200 text-gray-700 px-2 py-0.5 text-xs rounded-full cursor-pointer tag-badge-trigger transition-all duration-200 hover:bg-gray-300 hover:shadow-sm"
                   onClick={() => setTooltipVisible(true)}
                 >
                   +{entry.tags.length - 3}
                 </Badge>
 
                 {tooltipVisible && (
-                  <div className="absolute left-0 top-full mt-2 z-20 tag-tooltip-container">
-                    <div className="bg-white border border-gray-200 rounded-md shadow-lg p-2 min-w-[150px]">
+                  <div className="absolute left-0 top-full mt-2 z-20 tag-tooltip-container transition-all duration-200">
+                    <div className="bg-white border border-gray-200 rounded-md shadow-lg p-2 min-w-[150px] transition-transform duration-200 hover:shadow-xl">
                       <div className="flex justify-between items-center mb-2">
                         <p className="text-xs text-gray-500">More tags:</p>
                         <button
                           onClick={() => setTooltipVisible(false)}
-                          className="text-gray-500 hover:text-gray-700"
+                          className="text-gray-500 hover:text-gray-700 transition-colors duration-200 hover:scale-110"
                           aria-label="Close tooltip"
                         >
                           <X className="h-3 w-3" />
@@ -257,7 +259,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
                         {entry.tags.slice(3).map((tag: string, idx: number) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between"
+                            className="flex items-center justify-between transition-colors duration-200 hover:bg-gray-50 px-1 rounded"
                           >
                             <span className="text-xs text-gray-700">{tag}</span>
                             <button
@@ -266,7 +268,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
                                 // Keep tooltip open after removing a tag
                                 e.stopPropagation();
                               }}
-                              className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-white"
+                              className="ml-1 rounded-full hover:bg-red-500 hover:text-white p-0.5 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-white hover:scale-110"
                               aria-label={`Remove tag ${tag}`}
                             >
                               <X className="h-2.5 w-2.5" />
@@ -293,7 +295,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
                   }
                 }, 0);
               }}
-              className="text-xs text-gray-500 hover:text-[#003243]"
+              className="text-xs text-gray-500 hover:text-[#003243] transition-all duration-200 hover:scale-105 hover:font-medium"
             >
               + Add Tag
             </button>
@@ -303,8 +305,8 @@ const EntryCard: React.FC<EntryCardProps> = ({
 
       <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
         <div onClick={(e) => e.stopPropagation()} className="flex items-center">
-          <FolderIcon className="h-4 w-4 text-gray-500 mr-1" />
-          <span className="text-xs text-gray-500">
+          <FolderIcon className="h-4 w-4 text-gray-500 mr-1 transition-colors duration-200 group-hover:text-[#003243]" />
+          <span className="text-xs text-gray-500 transition-colors duration-200 hover:text-gray-700 group hover:text-[#003243]">
             {entry.folderId
               ? availableFolders.find((f) => f.id === entry.folderId)?.name ||
                 'Folder'
@@ -314,7 +316,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
             value={entry.folderId?.toString() ?? 'null'}
             onValueChange={handleFolderChange}
           >
-            <SelectTrigger className="h-7 text-xs px-2 py-0 min-w-[80px] bg-gray-100 border border-gray-200 hover:bg-gray-200 rounded ml-1">
+            <SelectTrigger className="h-7 text-xs px-2 py-0 min-w-[80px] bg-gray-100 border border-gray-200 hover:bg-gray-200 rounded ml-1 transition-all duration-200 hover:shadow-sm">
               <span className="text-xs">Change</span>
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-200">
@@ -340,7 +342,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
         {/* Action Buttons */}
         <div className="flex space-x-2">
           <button
-            className="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               onShareClick(e, entry.id);
@@ -350,8 +352,21 @@ const EntryCard: React.FC<EntryCardProps> = ({
             <Share2 className="h-4 w-4" />
           </button>
           <button
-            className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600"
-            onClick={handleDeleteClick}
+            className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Add animation class before deleting
+              const entryElement = e.currentTarget.closest('li');
+              if (entryElement) {
+                entryElement.classList.add('animate-delete');
+                // Wait for animation to complete before actual deletion
+                setTimeout(() => {
+                  handleDeleteClick(e);
+                }, 500);
+              } else {
+                handleDeleteClick(e);
+              }
+            }}
             aria-label="Delete entry"
           >
             <Trash2 className="h-4 w-4" />
