@@ -55,10 +55,13 @@ export default function FolderPage() {
   ): string {
     const normalized = content.replace(/\\\\n/g, '\n');
     const html = marked(normalized) as string;
-    const plainText = html
-      .replace(/<\/?[^>]+(>|$)/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+
+    const tempElement = document.createElement('div');
+    tempElement.innerHTML = html;
+    const decodedText = tempElement.textContent || tempElement.innerText || '';
+
+    const plainText = decodedText.replace(/\s+/g, ' ').trim();
+
     return plainText.length > maxLength
       ? plainText.substring(0, maxLength).trim() + '...'
       : plainText;

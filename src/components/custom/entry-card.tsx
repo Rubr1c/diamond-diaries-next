@@ -335,7 +335,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
       <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
         <div onClick={(e) => e.stopPropagation()} className="flex items-center">
           <FolderIcon className="h-4 w-4 text-gray-500 mr-1 transition-colors duration-200 group-hover:text-[#003243]" />
-          <span className="text-xs text-gray-500 transition-colors duration-200 hover:text-gray-700 group hover:text-[#003243]">
+          <span className="text-xs text-gray-500 transition-colors duration-200 group hover:text-[#003243]">
             {entry.folderId
               ? availableFolders.find((f) => f.id === entry.folderId)?.name ||
                 'Folder'

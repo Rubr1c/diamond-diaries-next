@@ -4,6 +4,18 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-dark.css';
 
 export default function MarkdownRenderer({ content }: { content: string }) {
+  const processedContent = content.replace(
+    /^---\s*([\s\S]*?)---/m,
+    (match, frontmatter) => {
+      const formattedFrontmatter = frontmatter
+        .split('\n')
+        .map((line: string) => line.trim())
+        .filter((line: string) => line.length > 0)
+        .join('\n\n');
+      return `---\n\n${formattedFrontmatter}\n\n---`;
+    }
+  );
+
   return (
     <ReactMarkdown
       components={{
@@ -65,7 +77,7 @@ export default function MarkdownRenderer({ content }: { content: string }) {
       remarkPlugins={[remarkGfm]}
       rehypePlugins={[rehypeHighlight]}
     >
-      {content}
+      {processedContent}
     </ReactMarkdown>
   );
 }

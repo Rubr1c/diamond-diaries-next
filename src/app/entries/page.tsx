@@ -1,7 +1,7 @@
 'use client';
 
 import { Entry } from '@/index/entry';
-import { Folder } from '@/index/folder'; // Added Folder import
+import { Folder } from '@/index/folder';
 import {
   fetchEntries,
   searchEntries,
@@ -51,7 +51,6 @@ export default function EntriesPage() {
     queryFn: fetchAllTags,
   });
 
-  // Fetch available folders
   const { data: availableFolders = [] } = useQuery<Folder[]>({
     queryKey: ['folders'],
     queryFn: fetchAllFolders,
@@ -70,7 +69,6 @@ export default function EntriesPage() {
     retry: false,
   });
 
-  // removeTagMutation removed, handled in EntryCard
 
   const {
     data,
@@ -99,7 +97,6 @@ export default function EntriesPage() {
   const handleDateRangeSelect = (startDate: Date, endDate: Date) => {
     setDateRange([startDate, endDate]);
     setSearchedEntries(null);
-    // Clear tag filters when date range is selected
     setFilterTags([]);
   };
 
@@ -124,9 +121,7 @@ export default function EntriesPage() {
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  // Tag filter handlers
   const handleAddFilterTag = (tag: string) => {
-    // Clear date range when adding a tag filter
     setDateRange([null, null]);
     setFilterTags((prev) => [...prev, tag]);
   };
@@ -175,7 +170,6 @@ export default function EntriesPage() {
     );
   }
 
-  // Flatten all pages of entries
   const entries = data?.pages.flatMap((page) => page.entries) ?? [];
 
   function handleEntryClick(entryId: string) {
@@ -188,10 +182,13 @@ export default function EntriesPage() {
   ): string {
     const normalized = content.replace(/\\n/g, '\n');
     const html = marked(normalized) as string;
-    const plainText = html
-      .replace(/<\/?[^>]+(>|$)/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+
+    const tempElement = document.createElement('div');
+    tempElement.innerHTML = html;
+    const decodedText = tempElement.textContent || tempElement.innerText || '';
+
+    const plainText = decodedText.replace(/\s+/g, ' ').trim();
+
     return plainText.length > maxLength
       ? plainText.substring(0, maxLength).trim() + '...'
       : plainText;
@@ -263,7 +260,6 @@ export default function EntriesPage() {
               />
             </div>
 
-            {/* Filter by Tags */}
             <div className="flex-grow-0 min-w-[150px] self-stretch flex items-center">
               <TagSelector
                 selectedTags={filterTags}
@@ -274,7 +270,6 @@ export default function EntriesPage() {
               />
             </div>
 
-            {/* Filter by date range */}
             <div className="flex-grow-0">
               <Popover>
                 <PopoverTrigger asChild>
@@ -320,7 +315,6 @@ export default function EntriesPage() {
                       selectRange={true}
                     />
                   </div>
-                  {/* Clear button below calendar */}
                   {(dateRange[0] || dateRange[1]) && (
                     <div className="p-2 border-t border-gray-100 flex justify-center bg-white">
                       <button
@@ -336,7 +330,6 @@ export default function EntriesPage() {
             </div>
           </div>
 
-          {/* Selected Tags Display - Moved outside the flex container */}
           {filterTags.length > 0 && (
             <div className="mb-4 flex flex-wrap gap-2">
               {filterTags.map((tag) => (
@@ -357,8 +350,6 @@ export default function EntriesPage() {
               ))}
             </div>
           )}
-
-          {/* Remove the duplicate search input div */}
 
           {(() => {
             const displayData =
@@ -381,7 +372,6 @@ export default function EntriesPage() {
                 </div>
               );
             } else if (shouldShowNoResultsMessage) {
-              // Empty state after filtering/searching
               return (
                 <div className="flex justify-center items-center min-h-[200px]">
                   <p className="text-gray-500">

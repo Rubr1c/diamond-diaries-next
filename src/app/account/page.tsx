@@ -584,7 +584,7 @@ export default function Account() {
                 ref={imgRef}
                 alt="Crop me"
                 src={imgSrc}
-                style={{ maxHeight: '70vh' }} // Limit image display height
+                style={{ maxHeight: '70vh' }}
               />
             </ReactCrop>
           )}
