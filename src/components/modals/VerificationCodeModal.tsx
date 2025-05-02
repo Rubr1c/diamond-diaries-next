@@ -57,9 +57,9 @@ export function VerificationCodeModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#1E4959] text-white flex flex-col">
+      <DialogContent className="bg-gradient-to-b from-[#003243] to-[#002233] text-white flex flex-col rounded-lg border border-[#004d6b]/30 shadow-lg">
         <DialogHeader className="items-start">
-          <DialogTitle className="text-white">
+          <DialogTitle className="text-white text-xl font-bold">
             Enter Verification Code
           </DialogTitle>
           <DialogDescription className="text-gray-300">
@@ -78,18 +78,45 @@ export function VerificationCodeModal({
               render={({ field }) => (
                 <FormItem className="flex flex-col items-center mt-5">
                   <FormControl>
-                    <InputOTP maxLength={6} {...field} autoComplete="off">
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
+                    <InputOTP
+                      maxLength={6}
+                      {...field}
+                      autoComplete="off"
+                      className="gap-2"
+                    >
+                      <InputOTPGroup className="gap-2">
+                        <InputOTPSlot
+                          index={0}
+                          className="bg-white/10 border-[#004d6b] focus:border-[#01C269] focus:bg-white/20 transition-all duration-200 cursor-text h-12 w-12"
+                        />
+                        <InputOTPSlot
+                          index={1}
+                          className="bg-white/10 border-[#004d6b] focus:border-[#01C269] focus:bg-white/20 transition-all duration-200 cursor-text h-12 w-12"
+                        />
+                        <InputOTPSlot
+                          index={2}
+                          className="bg-white/10 border-[#004d6b] focus:border-[#01C269] focus:bg-white/20 transition-all duration-200 cursor-text h-12 w-12"
+                        />
+                        <InputOTPSlot
+                          index={3}
+                          className="bg-white/10 border-[#004d6b] focus:border-[#01C269] focus:bg-white/20 transition-all duration-200 cursor-text h-12 w-12"
+                        />
+                        <InputOTPSlot
+                          index={4}
+                          className="bg-white/10 border-[#004d6b] focus:border-[#01C269] focus:bg-white/20 transition-all duration-200 cursor-text h-12 w-12"
+                        />
+                        <InputOTPSlot
+                          index={5}
+                          className="bg-white/10 border-[#004d6b] focus:border-[#01C269] focus:bg-white/20 transition-all duration-200 cursor-text h-12 w-12"
+                        />
                       </InputOTPGroup>
                     </InputOTP>
                   </FormControl>
-                  {error && <FormMessage className="text-center mt-2 text-red-500">{error}</FormMessage>}
+                  {error && (
+                    <FormMessage className="text-center mt-2 text-red-400 bg-red-900/20 px-3 py-1 rounded-md">
+                      {error}
+                    </FormMessage>
+                  )}
                 </FormItem>
               )}
             />
@@ -97,7 +124,7 @@ export function VerificationCodeModal({
             <DialogFooter className="w-full flex justify-center">
               <Button
                 type="submit"
-                className="bg-[#01C269] text-white hover:bg-[#01C269]/90 hover:cursor-pointer"
+                className="bg-[#01C269] text-white hover:bg-[#01A050] transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer px-8 py-2 rounded-md font-medium"
               >
                 Verify
               </Button>
