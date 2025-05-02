@@ -27,6 +27,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      console.warn('Authentication error (401) - removing token');
+      localStorage.removeItem('token');
+    }
     return Promise.reject(error);
   }
 );
