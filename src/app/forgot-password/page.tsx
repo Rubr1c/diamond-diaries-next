@@ -19,16 +19,19 @@ import {
 import { forgotPassword, resetPassword } from '@/lib/api';
 import Image from 'next/image';
 import Link from 'next/link';
-import { forgotPasswordSchema, resetPasswordSchema } from '@/schemas/auth-schemas';
-
+import {
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from '@/schemas/auth-schemas';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [isVerificationLoading, setIsVerificationLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [step, setStep] = useState<'email' | 'reset'>('email');
   const [error, setError] = useState('');
-  
+
   const emailForm = useForm<z.infer<typeof forgotPasswordSchema>>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -47,35 +50,50 @@ export default function ForgotPasswordPage() {
   const onEmailSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
     try {
       setError('');
+      setIsVerificationLoading(true);
+      setIsVerificationModalOpen(true);
       await forgotPassword(data.email);
       setEmail(data.email);
-      setIsVerificationModalOpen(true);
+      setIsVerificationLoading(false);
     } catch (err) {
       console.error('Error requesting password reset:', err);
       setError('Failed to send verification code. Please try again.');
+      setIsVerificationModalOpen(false);
+      setIsVerificationLoading(false);
     }
   };
 
   const onVerifyCode = async (code: string) => {
-    setStep('reset');
-    setIsVerificationModalOpen(false);
-    localStorage.setItem('resetCode', code);
+    try {
+      // The modal will handle its own loading state during verification
+      // After successful verification, close the modal and move to reset step
+      setStep('reset');
+      setIsVerificationModalOpen(false);
+      localStorage.setItem('resetCode', code);
+    } catch (error) {
+      console.error('Error verifying code:', error);
+      setIsVerificationLoading(false);
+    }
   };
 
-  const onPasswordSubmit = async (data: z.infer<typeof resetPasswordSchema>) => {
+  const onPasswordSubmit = async (
+    data: z.infer<typeof resetPasswordSchema>
+  ) => {
     try {
       setError('');
       const verificationCode = localStorage.getItem('resetCode');
-      
+
       if (!verificationCode) {
-        setError('Verification code is missing. Please try again from the beginning.');
+        setError(
+          'Verification code is missing. Please try again from the beginning.'
+        );
         return;
       }
 
       await resetPassword(email, verificationCode, data.password);
-      
+
       localStorage.removeItem('resetCode');
-      
+
       router.push('/login');
     } catch (err) {
       console.error('Error resetting password:', err);
@@ -117,7 +135,10 @@ export default function ForgotPasswordPage() {
 
         {step === 'email' ? (
           <Form {...emailForm}>
-            <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+            <form
+              onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={emailForm.control}
                 name="email"
@@ -135,19 +156,35 @@ export default function ForgotPasswordPage() {
                   </FormItem>
                 )}
               />
-              
-              <Button type="submit" className="w-full bg-[#01C269] hover:bg-[#01C269]/90">
+
+              <Button
+                type="submit"
+                className="w-full bg-[#01C269] hover:bg-[#01C269]/90"
+              >
                 Send Reset Link
               </Button>
             </form>
           </Form>
         ) : (
           <Form {...passwordForm}>
-            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4" autoComplete="off" id="new-password-form">
+            <form
+              onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
+              className="space-y-4"
+              autoComplete="off"
+              id="new-password-form"
+            >
               {/* Hidden fake fields to trick browser autofill */}
-              <input type="text" name="fakeusernameremembered" style={{ display: 'none' }} />
-              <input type="password" name="fakepasswordremembered" style={{ display: 'none' }} />
-              
+              <input
+                type="text"
+                name="fakeusernameremembered"
+                style={{ display: 'none' }}
+              />
+              <input
+                type="password"
+                name="fakepasswordremembered"
+                style={{ display: 'none' }}
+              />
+
               <FormField
                 control={passwordForm.control}
                 name="password"
@@ -170,7 +207,7 @@ export default function ForgotPasswordPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={passwordForm.control}
                 name="confirmPassword"
@@ -182,7 +219,7 @@ export default function ForgotPasswordPage() {
                         placeholder="••••••••"
                         type="password"
                         autoComplete="off"
-                        autoCorrect="off" 
+                        autoCorrect="off"
                         autoCapitalize="off"
                         spellCheck="false"
                         data-form-type="other"
@@ -193,14 +230,17 @@ export default function ForgotPasswordPage() {
                   </FormItem>
                 )}
               />
-              
-              <Button type="submit" className="w-full bg-[#01C269] hover:bg-[#01C269]/90">
+
+              <Button
+                type="submit"
+                className="w-full bg-[#01C269] hover:bg-[#01C269]/90"
+              >
                 Reset Password
               </Button>
             </form>
           </Form>
         )}
-        
+
         <div className="px-8 text-center text-sm">
           <Link href="/login" className="hover:underline">
             Back to Login
@@ -212,6 +252,7 @@ export default function ForgotPasswordPage() {
         isOpen={isVerificationModalOpen}
         onClose={() => setIsVerificationModalOpen(false)}
         onVerify={onVerifyCode}
+        isLoading={isVerificationLoading}
       />
     </div>
   );

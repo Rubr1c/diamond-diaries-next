@@ -52,6 +52,7 @@ export default function Account() {
   const [hasChanges, setHasChanges] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [isVerificationLoading, setIsVerificationLoading] = useState(false);
   const [passwordChangeError, setPasswordChangeError] = useState('');
 
   // --- State for Profile Picture Cropping ---
@@ -167,20 +168,23 @@ export default function Account() {
     try {
       localStorage.setItem('newPassword', data.password);
 
-      await initiatePasswordChange(user.email);
-
+      setIsVerificationLoading(true);
       setIsVerificationModalOpen(true);
+      await initiatePasswordChange(user.email);
+      setIsVerificationLoading(false);
     } catch (err) {
       console.error('Error initiating password change:', err);
       setPasswordChangeError(
         'Failed to send verification code. Please try again.'
       );
+      
     }
   };
 
   const onVerifyCode = async (code: string) => {
     if (!user?.email) {
       setPasswordChangeError('User email not found. Please try again later.');
+      setIsVerificationLoading(false);
       return;
     }
 
@@ -188,6 +192,7 @@ export default function Account() {
       const newPassword = localStorage.getItem('newPassword');
       if (!newPassword) {
         setPasswordChangeError('Password data not found. Please try again.');
+        setIsVerificationLoading(false);
         return;
       }
 
@@ -200,8 +205,10 @@ export default function Account() {
     } catch (err) {
       console.error('Error changing password:', err);
       setPasswordChangeError('Failed to change password. Please try again.');
+      setIsVerificationLoading(false);
     } finally {
       setIsVerificationModalOpen(false);
+      setIsVerificationLoading(false);
     }
   };
 
@@ -557,6 +564,7 @@ export default function Account() {
         isOpen={isVerificationModalOpen}
         onClose={() => setIsVerificationModalOpen(false)}
         onVerify={onVerifyCode}
+        isLoading={isVerificationLoading}
       />
 
       {/* --- Profile Picture Crop Modal --- */}

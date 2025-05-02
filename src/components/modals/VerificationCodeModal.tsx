@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -25,17 +25,20 @@ import {
 } from '@/components/ui/form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 
 interface VerificationCodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onVerify: (code: string) => Promise<void>;
+  isLoading?: boolean; // Add optional isLoading prop that parent components can control
 }
 
 export function VerificationCodeModal({
   isOpen,
   onClose,
   onVerify,
+  isLoading: externalLoading, // Accept external loading state from parent
 }: VerificationCodeModalProps) {
   const form = useForm<z.infer<typeof verifySchema>>({
     resolver: zodResolver(verifySchema),
@@ -44,26 +47,51 @@ export function VerificationCodeModal({
     },
   });
   const [error, setError] = useState('');
+  const [internalLoading, setInternalLoading] = useState(false);
+
+  // Use either external loading state (if provided) or internal loading state
+  const isLoading =
+    externalLoading !== undefined ? externalLoading : internalLoading;
+
+  // Reset form and error when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      form.reset();
+      setError('');
+    }
+  }, [isOpen, form]);
 
   async function onSubmit(data: z.infer<typeof verifySchema>) {
     try {
+      setInternalLoading(true);
+      setError('');
       await onVerify(data.code);
-      onClose();
+      // Don't close the modal here - let the parent component decide when to close it
+      // The parent component should set isOpen to false when it's ready
     } catch (err) {
       console.error(err);
       setError('Invalid verification code');
+      setInternalLoading(false); // Only reset loading state on error
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-gradient-to-b from-[#003243] to-[#002233] text-white flex flex-col rounded-lg border border-[#004d6b]/30 shadow-lg">
+      <DialogContent
+        className={`bg-gradient-to-b from-[#003243] to-[#002233] text-white flex flex-col rounded-lg shadow-lg ${
+          isLoading
+            ? 'border-2 border-[#01C269] animate-pulse'
+            : 'border border-[#004d6b]/30'
+        }`}
+      >
         <DialogHeader className="items-start">
           <DialogTitle className="text-white text-xl font-bold">
             Enter Verification Code
           </DialogTitle>
           <DialogDescription className="text-gray-300">
-            Please enter the verification code sent to your email
+            {isLoading
+              ? 'Sending verification code to your email...'
+              : 'Please enter the verification code sent to your email'}
           </DialogDescription>
         </DialogHeader>
 
@@ -83,6 +111,7 @@ export function VerificationCodeModal({
                       {...field}
                       autoComplete="off"
                       className="gap-2"
+                      disabled={isLoading}
                     >
                       <InputOTPGroup className="gap-2">
                         <InputOTPSlot
@@ -125,8 +154,16 @@ export function VerificationCodeModal({
               <Button
                 type="submit"
                 className="bg-[#01C269] text-white hover:bg-[#01A050] transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer px-8 py-2 rounded-md font-medium"
+                disabled={isLoading}
               >
-                Verify
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {externalLoading ? 'Sending Code...' : 'Verifying...'}
+                  </>
+                ) : (
+                  'Verify'
+                )}
               </Button>
             </DialogFooter>
           </form>

@@ -23,6 +23,7 @@ import { GoogleSignInButton } from '@/components/custom/google-sign-in-button';
 export default function Login() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVerificationLoading, setIsVerificationLoading] = useState(false);
   const [email, setEmail] = useState('');
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -48,22 +49,27 @@ export default function Login() {
         });
         return;
       }
+      setIsVerificationLoading(true);
+      setIsModalOpen(true);
+
       await register(values.email, values.username, values.password);
       setEmail(values.email);
-      setIsModalOpen(true);
+      setIsVerificationLoading(false);
     } catch (error) {
       console.log(error);
     }
   }
 
-  const handleVerify = async (code: string) => {
+  async function handleVerify(code: string) {
     try {
+      setIsVerificationLoading(true);
       await verifyEmail(email, code);
       router.push('/login');
     } catch (error) {
+      setIsVerificationLoading(false);
       throw error;
     }
-  };
+  }
 
   return (
     <>
@@ -183,6 +189,7 @@ export default function Login() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onVerify={handleVerify}
+        isLoading={isVerificationLoading}
       />
     </>
   );

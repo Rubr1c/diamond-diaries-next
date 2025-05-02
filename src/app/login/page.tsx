@@ -24,6 +24,7 @@ import { verify2fa } from '@/lib/api';
 export default function Login() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVerificationLoading, setIsVerificationLoading] = useState(false);
   const [email, setEmail] = useState('');
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -41,29 +42,37 @@ export default function Login() {
 
   async function handleVerify(code: string) {
     try {
+      setIsVerificationLoading(true);
       const user = await verify2fa(email, code);
       if (user) {
         router.push('/');
       } else {
-        setIsModalOpen(true);
+        // If no user is returned but no error thrown, show an error message
+        throw new Error('Invalid verification code');
       }
     } catch (error) {
       console.log(error);
+      setIsVerificationLoading(false);
+      // Let the error bubble up to the VerificationCodeModal
+      throw error;
     }
   }
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
+      setIsVerificationLoading(true);
       const user = await login(values.email, values.password);
       if (!user) {
         setEmail(values.email);
         setIsModalOpen(true);
+        setIsVerificationLoading(false);
         return;
       }
 
       router.push('/');
     } catch (error) {
       console.log(error);
+      setIsVerificationLoading(false);
     }
   }
 
@@ -129,8 +138,16 @@ export default function Login() {
               <Button
                 type="submit"
                 className="mt-4 md:mt-6 hover:cursor-pointer bg-[#01C269] text-white w-full md:w-60 h-12 text-base md:text-lg font-bold"
+                disabled={isVerificationLoading}
               >
-                LOG IN
+                {isVerificationLoading ? (
+                  <>
+                    <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                    LOGGING IN...
+                  </>
+                ) : (
+                  'LOG IN'
+                )}
               </Button>
             </div>
             <div className="flex mt-3 md:mt-4 justify-center">
@@ -154,6 +171,7 @@ export default function Login() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onVerify={handleVerify}
+        isLoading={isVerificationLoading}
       />
     </>
   );
