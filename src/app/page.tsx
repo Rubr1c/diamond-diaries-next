@@ -120,7 +120,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 mt-16">
-      <h1 className="text-2xl font-semibold mb-6">
+      <h1 className="text-2xl font-semibold mb-6 text-white">
         Welcome back, {user?.username || 'User'}!
       </h1>
 
