@@ -34,7 +34,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
   entry,
   truncatedContent,
   availableTags,
-  availableFolders, // Destructure availableFolders
+  availableFolders,
   onEntryClick,
   onShareClick,
   queryKeyToInvalidate,

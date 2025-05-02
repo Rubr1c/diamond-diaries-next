@@ -1,14 +1,8 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation'; // Import useRouter
-import {
-  useQuery,
-} from '@tanstack/react-query';
-import {
-  fetchAllEntriesFromFolder,
-  fetchAllTags,
-  getFolder,
-} from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAllEntriesFromFolder, fetchAllTags, getFolder } from '@/lib/api';
 import { useUser } from '@/hooks/useUser';
 import { useState } from 'react';
 import { marked } from 'marked';
@@ -126,6 +120,7 @@ export default function FolderPage() {
                 );
                 return (
                   <EntryCard
+                    availableFolders={[]}
                     key={entry.id}
                     entry={entry}
                     truncatedContent={truncatedContent}

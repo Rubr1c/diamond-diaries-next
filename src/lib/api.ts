@@ -2,7 +2,7 @@ import { Entry } from '@/index/entry';
 import { Folder } from '@/index/folder';
 import { Media } from '@/index/media';
 import { User } from '@/index/user';
-import axios from 'axios';
+import axios, { AxiosProgressEvent } from 'axios'; // Import AxiosProgressEvent
 
 const api = axios.create({
   baseURL: 'https://diamond-diaries.online' + '/api/' + 'v1',
@@ -190,7 +190,7 @@ export async function fetchEntryByUuid(entryUuid: string): Promise<Entry> {
   return res.data;
 }
 
-export async function fetchEntriesByDate(date: string): Promise<Entry[]> {
+export async function fetchEntriesForMonth(date: string): Promise<Entry[]> {
   try {
     const res = await api.get(`/entry/date/${date}`);
     return res.data;
@@ -435,7 +435,8 @@ export async function getAllMediaForEntry(
 export async function uploadMediaToEntry(
   entryId: bigint,
   mediaType: 'IMAGE' | 'VIDEO' | 'FILE',
-  file: File
+  file: File,
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void // Use standard ProgressEvent
 ): Promise<string> {
   const token = localStorage.getItem('token');
   const formData = new FormData();
@@ -447,8 +448,13 @@ export async function uploadMediaToEntry(
       'Content-Type': 'multipart/form-data',
       Authorization: token ? `Bearer ${token}` : undefined,
     },
+    onUploadProgress,
   });
   return res.data;
+}
+
+export async function deleteMedia(entryId: bigint, mediaId: bigint) {
+  await api.delete(`entry/${entryId}/media/${mediaId}`);
 }
 
 export default api;

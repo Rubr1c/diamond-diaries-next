@@ -193,12 +193,7 @@ export default function EntriesPage() {
       : plainText;
   }
 
-  // handleFavoriteToggle removed, handled in EntryCard
-  // handleDelete removed, handled in EntryCard
-  // handleRemoveTag removed, handled in EntryCard
-  // handleAddTagToEntry removed, handled in EntryCard
-
-  // Function to handle opening the share modal (passed to EntryCard)
+ 
   const handleShareClick = (e: React.MouseEvent, entryId: bigint) => {
     e.stopPropagation();
     setSelectedEntryId(entryId);

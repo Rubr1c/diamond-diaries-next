@@ -5,8 +5,9 @@ import {
   editEntry,
   getAllMediaForEntry,
   uploadMediaToEntry,
+  deleteMedia,
 } from '@/lib/api';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'; // Import useMutation
 import { useParams, useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -14,6 +15,11 @@ import { useRef, useState } from 'react';
 import MarkdownRenderer from '@/components/custom/markdown-renderer';
 import Image from 'next/image';
 import { useUser } from '@/hooks/useUser';
+import { Button } from '@/components/ui/button';
+import { Trash2, Download } from 'lucide-react';
+import { toast } from 'sonner';
+import { Progress } from '@/components/ui/progress';
+import { AxiosProgressEvent } from 'axios';
 
 export default function EntryPage() {
   const {} = useUser();
@@ -21,6 +27,8 @@ export default function EntryPage() {
   const queryClient = useQueryClient();
   const entryRef = useRef<HTMLDivElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null); // State for upload progress
+  const [isUploadingMedia, setIsUploadingMedia] = useState<boolean>(false); // State for overall upload process
 
   const router = useRouter();
 
@@ -40,6 +48,24 @@ export default function EntryPage() {
     refetchOnWindowFocus: false,
     staleTime: 900000,
   });
+
+  const deleteMediaMutation = useMutation({
+    mutationFn: ({ entryId, mediaId }: { entryId: bigint; mediaId: bigint }) =>
+      deleteMedia(entryId, mediaId),
+    onSuccess: () => {
+      toast.success('Media deleted successfully!');
+      queryClient.invalidateQueries({ queryKey: [`media-${id}`] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete media: ${error.message}`);
+      console.error('Delete failed', error);
+    },
+  });
+
+  const handleDeleteMedia = (mediaId: bigint) => {
+    if (!entry) return;
+    deleteMediaMutation.mutate({ entryId: entry.id, mediaId });
+  };
 
   const handleGeneratePdf = async () => {
     if (!entryRef.current) return;
@@ -107,21 +133,51 @@ export default function EntryPage() {
     queryClient.invalidateQueries({ queryKey: ['entries'] });
   }
 
+  const handleUploadProgress = (progressEvent: AxiosProgressEvent) => {
+    if (progressEvent.lengthComputable) {
+      if (progressEvent.total) {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        setUploadProgress(percentCompleted);
+      }
+    } else {
+      console.log('Upload progress: total size unknown');
+    }
+  };
+
   async function handleUploadMedia() {
     if (!entry || !selectedFile) return;
-    // Infer mediaType from file MIME type
-    const mime = selectedFile.type;
+    const currentFile = selectedFile;
+    setIsUploadingMedia(true);
+    setUploadProgress(0);
+    const mime = currentFile.type;
     const inferredType: 'IMAGE' | 'VIDEO' | 'FILE' = mime.startsWith('image/')
       ? 'IMAGE'
       : mime.startsWith('video/')
       ? 'VIDEO'
       : 'FILE';
     try {
-      await uploadMediaToEntry(entry.id, inferredType, selectedFile);
-      setSelectedFile(null);
-      queryClient.invalidateQueries({ queryKey: [`media-${id}`] });
+      await uploadMediaToEntry(
+        entry.id,
+        inferredType,
+        currentFile,
+        handleUploadProgress
+      );
+      toast.success('Media uploaded successfully!');
+      await queryClient.refetchQueries({
+        queryKey: [`media-${id}`],
+        exact: true,
+      });
     } catch (e) {
       console.error('Upload failed', e);
+      toast.error(
+        `Upload failed: ${e instanceof Error ? e.message : 'Unknown error'}`
+      );
+    } finally {
+      setSelectedFile(null);
+      setUploadProgress(null);
+      setIsUploadingMedia(false);
     }
   }
 
@@ -185,58 +241,103 @@ export default function EntryPage() {
         Export
       </button>
 
-      {/* Upload media section */}
-      <div className="flex items-center space-x-2 mt-4">
-        <input
-          type="file"
-          accept="*/*"
-          onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-        />
-        <button
-          onClick={handleUploadMedia}
-          disabled={!selectedFile}
-          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-        >
-          Upload
-        </button>
+      <div className="w-full max-w-4xl mx-auto mt-4 mb-8 p-4 border rounded-lg bg-white shadow-sm">
+        <h3 className="text-lg font-semibold mb-3">Upload New Media</h3>
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <input
+            type="file"
+            accept="*/*"
+            onChange={(e) => {
+              setSelectedFile(e.target.files?.[0] ?? null);
+              setUploadProgress(null);
+            }}
+            className="flex-grow p-2 border rounded"
+            disabled={isUploadingMedia}
+          />
+          <Button
+            onClick={handleUploadMedia}
+            disabled={!selectedFile || isUploadingMedia} 
+            className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white rounded disabled:opacity-50"
+          >
+            {isUploadingMedia
+              ? `Uploading... ${
+                  uploadProgress !== null ? `${uploadProgress}%` : ''
+                }` 
+              : 'Upload'}
+          </Button>
+        </div>
+        {isUploadingMedia && (
+          <Progress
+            value={uploadProgress ?? 0}
+            className="w-full mt-3 h-2"
+          />
+        )}
       </div>
 
-      {media &&
-        media.length > 0 &&
-        media.map((entryMedia) => {
-          if (entryMedia.type === 'IMAGE') {
-            return (
-              <Image
-                src={entryMedia.presignedUrl}
-                key={entryMedia.id}
-                alt="media image"
-                width={320}
-                height={240}
-                className="object-cover"
-              />
-            );
-          } else if (entryMedia.type === 'VIDEO') {
-            return (
-              <video width="320" height="240" controls key={entryMedia.id}>
-                <source src={entryMedia.presignedUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            );
-          } else if (entryMedia.type === 'FILE') {
-            return (
-              <a
-                href={entryMedia.presignedUrl}
-                key={entryMedia.id}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 underline"
-              >
-                Download File
-              </a>
-            );
-          }
-        })}
-      <p className="text-gray-600 text-sm mt-2">{entry?.wordCount} words</p>
+      {/* Media Display Section */}
+      <div className="w-full max-w-4xl mx-auto mt-8 space-y-6">
+        <h2 className="text-xl font-semibold mb-4">Attached Media</h2>
+        {media && media.length > 0 ? (
+          media.map((entryMedia) => (
+            <div
+              key={entryMedia.id}
+              className="border rounded-lg p-4 bg-white shadow-sm flex flex-col sm:flex-row items-center gap-4"
+            >
+              <div className="flex-grow">
+                <p className="font-medium text-gray-700 mb-2 truncate">
+                  {entryMedia.filename}
+                </p>
+                {entryMedia.type === 'IMAGE' ? (
+                  <Image
+                    src={entryMedia.presignedUrl}
+                    alt={entryMedia.filename}
+                    width={150}
+                    height={100}
+                    className="object-cover rounded"
+                  />
+                ) : entryMedia.type === 'VIDEO' ? (
+                  <video width="200" height="150" controls className="rounded">
+                    <source src={entryMedia.presignedUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                ) : entryMedia.type === 'FILE' ? (
+                  <div className="text-sm text-gray-500">Generic File</div>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <a
+                  href={entryMedia.presignedUrl}
+                  download={entryMedia.filename}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" size="icon" title="Download">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </a>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => handleDeleteMedia(entryMedia.id)}
+                  disabled={deleteMediaMutation.isPending}
+                  title="Delete"
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500 italic">
+            No media attached to this entry.
+          </p>
+        )}
+      </div>
+
+      <p className="text-gray-600 text-sm mt-8 mb-4">
+        {entry?.wordCount} words
+      </p>
     </div>
   );
 }

@@ -12,9 +12,6 @@ import { Entry } from '@/index/entry';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
-
-
 
 export default function Home() {
   const { data: user } = useUser();
@@ -139,7 +136,6 @@ export default function Home() {
             disabled={aiPrompt.isFetching}
             className="text-teal-600 hover:text-teal-700"
           >
-            <Edit className="h-5 w-5" />
           </Button>
         </CardHeader>
         <CardContent>
