@@ -65,8 +65,6 @@ export default function ForgotPasswordPage() {
 
   const onVerifyCode = async (code: string) => {
     try {
-      // The modal will handle its own loading state during verification
-      // After successful verification, close the modal and move to reset step
       setStep('reset');
       setIsVerificationModalOpen(false);
       localStorage.setItem('resetCode', code);

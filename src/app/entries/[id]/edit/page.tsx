@@ -108,72 +108,87 @@ export default function EntryEditPage() {
   }
 
   return (
-    <div className="mt-20 max-w-[90%] mx-auto px-4">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex items-center mb-2 gap-2">
-          {autosave !== undefined && (
-            <>
-              <input
-                type="checkbox"
-                id="autosave-toggle"
-                checked={autosave}
-                onChange={() => {
-                  setAutosave((prev) => {
-                    const newValue = !prev;
-                    setCookie('entry-autosave', newValue ? 'true' : 'false');
-                    return newValue;
-                  });
-                }}
-                className="mr-2"
-              />
-              <label
-                htmlFor="autosave-toggle"
-                className="select-none cursor-pointer"
-              >
-                Autosave
-              </label>
-              {autosave && (
-                <span className="ml-2 text-sm text-gray-500">
-                  {isSaving ? 'Saving...' : 'Autosave enabled'}
-                </span>
+    <div className="min-h-screen bg-gradient-to-b from-[#003243] to-[#002233] pt-16 pb-16 px-4">
+      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 h-[85vh] flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              {autosave !== undefined && (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      const newValue = !autosave;
+                      setAutosave(newValue);
+                      setCookie('entry-autosave', newValue ? 'true' : 'false');
+                    }}
+                    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00778a] ${
+                      autosave ? 'bg-[#01C269]' : 'bg-gray-300'
+                    }`}
+                    type="button"
+                  >
+                    <span
+                      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 ease-in-out ${
+                        autosave ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <label
+                    className="select-none cursor-pointer text-[#003243] hover:text-[#01C269] transition-colors duration-200"
+                    onClick={() => {
+                      const newValue = !autosave;
+                      setAutosave(newValue);
+                      setCookie('entry-autosave', newValue ? 'true' : 'false');
+                    }}
+                  >
+                    Autosave
+                  </label>
+                  {autosave && (
+                    <span className="ml-2 text-sm text-gray-500">
+                      {isSaving ? 'Saving...' : 'Autosave enabled'}
+                    </span>
+                  )}
+                </div>
               )}
-            </>
-          )}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Editor */}
-          <div className="w-full">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={20}
-              className="w-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent whitespace-pre-wrap"
-              style={{ whiteSpace: 'pre-wrap' }}
-            />
+            </div>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-[#01C269] text-white rounded-lg shadow-sm hover:bg-[#01A050] hover:shadow-md hover:scale-105 transition-all duration-200 cursor-pointer flex items-center"
+            >
+              {isSaving ? (
+                <>
+                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                  Saving...
+                </>
+              ) : (
+                'Done'
+              )}
+            </button>
           </div>
 
-          {/* Preview */}
-          <div className="w-full border rounded-lg shadow-sm p-4 overflow-y-auto prose prose-lg">
-            <MarkdownRenderer content={content} />
-          </div>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-auto">
+            {/* Editor */}
+            <div className="w-full h-full">
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full h-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-[#01C269] focus:border-transparent whitespace-pre-wrap bg-[#1E4959] text-white border-0"
+                style={{ whiteSpace: 'pre-wrap' }}
+              />
+            </div>
 
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Save Changes
-          </button>
-        </div>
-      </form>
+            {/* Preview */}
+            <div className="w-full h-full border border-gray-200 rounded-lg shadow-sm p-4 overflow-y-auto prose prose-lg bg-white">
+              <MarkdownRenderer content={content} />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              {entry && <span>{countWords(stripMarkdown(content))} words</span>}
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
