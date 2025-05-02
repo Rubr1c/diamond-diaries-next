@@ -124,6 +124,11 @@ const EntryCard: React.FC<EntryCardProps> = ({
     editMutation.mutate({ isFavorite: !entry.isFavorite });
   };
 
+  // Animation classes for the heart icon
+  const heartAnimationClass = entry?.isFavorite
+    ? 'transform scale-110 transition-transform duration-300 animate-heartbeat'
+    : 'transition-all duration-300 hover:scale-110';
+
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     deleteMutation.mutate();
@@ -150,7 +155,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
   return (
     <li
       key={entry.id}
-      className="p-4 border rounded-lg shadow-sm relative bg-white flex flex-col justify-between min-h-[200px] cursor-pointer"
+      className="p-4 border rounded-lg shadow-sm relative bg-white flex flex-col justify-between min-h-[200px] cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#003243] hover:scale-[1.01]"
       onClick={() => onEntryClick(entry.publicId)}
     >
       <div className="flex justify-between items-start mb-2">
@@ -166,7 +171,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
           {entry?.isFavorite ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-red-500"
+              className={`h-6 w-6 text-red-500 ${heartAnimationClass}`}
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -175,7 +180,7 @@ const EntryCard: React.FC<EntryCardProps> = ({
           ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-gray-300"
+              className={`h-6 w-6 text-gray-300 ${heartAnimationClass}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
