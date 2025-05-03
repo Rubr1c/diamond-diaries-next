@@ -34,7 +34,8 @@ api.interceptors.response.use(
       if (
         typeof window !== 'undefined' &&
         !error.config?.url?.includes('/auth/login') &&
-        window.location.href !== '/forgot-password'
+        !window.location.pathname.includes('/forgot-password') &&
+        !window.location.pathname.includes('/signup')
       ) {
         window.location.href = '/login';
       }
