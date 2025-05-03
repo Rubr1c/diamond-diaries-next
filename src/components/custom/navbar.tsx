@@ -40,6 +40,7 @@ export default function Navbar({ user }: NavbarProps) {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 hover:text-[#003243] focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200"
+              aria-label={mobileMenuOpen ? 'Close main menu' : 'Open main menu'}
             >
               {mobileMenuOpen ? (
                 <XIcon className="w-6 h-6" />
@@ -76,6 +77,7 @@ export default function Navbar({ user }: NavbarProps) {
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-300 transition-all duration-200 hover:scale-105 hover:shadow-md"
+                aria-label="Open user menu"
               >
                 {user?.profilePicture && !profileImageError ? (
                   <Image
@@ -89,7 +91,10 @@ export default function Navbar({ user }: NavbarProps) {
                     unoptimized
                   />
                 ) : (
-                  <UserIcon className="h-5 w-5 text-gray-600 group-hover:text-[#003243]" />
+                  <UserIcon
+                    className="h-5 w-5 text-gray-600 group-hover:text-[#003243]"
+                    data-testid="user-icon-placeholder"
+                  />
                 )}
               </button>
             </div>
@@ -120,7 +125,10 @@ export default function Navbar({ user }: NavbarProps) {
                     unoptimized
                   />
                 ) : (
-                  <UserIcon className="h-6 w-6 text-gray-600 hover:text-[#003243]" />
+                  <UserIcon
+                    className="h-6 w-6 text-gray-600 hover:text-[#003243]"
+                    data-testid="user-icon-placeholder-mobile"
+                  />
                 )}
               </button>
               <div>
