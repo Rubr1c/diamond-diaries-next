@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, jsx-a11y/alt-text */
 /// <reference types="@testing-library/jest-dom" />
 
 import React from 'react';

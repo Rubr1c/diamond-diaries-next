@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { entrySchema } from '@/schemas/entry-schemas';
 import { z, ZodError } from 'zod';
 

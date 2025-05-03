@@ -434,7 +434,7 @@ export default function Account() {
         container.removeEventListener('wheel', wheelHandler);
       }
     };
-  }, []);
+  }, [handleWheel]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();

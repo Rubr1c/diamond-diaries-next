@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /// <reference types="@testing-library/jest-dom" />
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';

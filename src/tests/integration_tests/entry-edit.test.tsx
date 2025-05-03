@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /// <reference types="@testing-library/jest-dom" />
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -5,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import EntryEditPage from '@/app/entries/[id]/edit/page';
-import { fetchEntryByUuid, editEntry } from '@/lib/api';
+import { editEntry } from '@/lib/api';
 
 // Mock speech recognition support
 jest.mock('react-speech-recognition', () => ({
@@ -29,7 +30,6 @@ jest.mock('@/lib/api', () => ({
 
 jest.mock('@/components/custom/markdown-renderer', () => ({ __esModule: true, default: ({ content }: any) => <div>{content}</div> }));
 
-const mockFetch = fetchEntryByUuid as jest.Mock;
 const mockEdit = editEntry as jest.Mock;
 
 const mockPush = jest.fn();
