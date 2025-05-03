@@ -66,10 +66,11 @@ export default function EntryEditPage() {
   });
 
   useEffect(() => {
-    if (entry && !content) {
+    // Initialize content once when entry loads
+    if (entry) {
       setContent(entry.content.replace(/\\n/g, '\n'));
     }
-  }, [entry, content]);
+  }, [entry]);
 
   useEffect(() => {
     const cookieValue = getCookie('entry-autosave');
